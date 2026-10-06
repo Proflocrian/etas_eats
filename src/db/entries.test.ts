@@ -1,0 +1,72 @@
+import 'fake-indexeddb/auto'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { db, type NewEntry } from './db'
+import {
+  addEntry,
+  deleteEntry,
+  getAllEntries,
+  getEntriesByDate,
+  getEntry,
+  updateEntry,
+} from './entries'
+
+const sample: NewEntry = {
+  date: '06-10-2026',
+  entryType: 'lunch',
+  time: '13:00',
+  food: 'Pasta',
+  quantity: '1 bowl',
+}
+
+beforeEach(async () => {
+  await db.entries.clear()
+})
+
+describe('entries data layer', () => {
+  it('adds an entry and reads it back with managed fields', async () => {
+    const id = await addEntry(sample)
+    const entry = await getEntry(id)
+
+    expect(entry).toMatchObject(sample)
+    expect(entry?.id).toBe(id)
+    expect(entry?.createdAt).toBeTypeOf('number')
+    expect(entry?.updatedAt).toBe(entry?.createdAt)
+  })
+
+  it('updates an entry and bumps updatedAt', async () => {
+    const id = await addEntry(sample)
+    const before = await getEntry(id)
+
+    await updateEntry(id, { food: 'Risotto', calories: 600 })
+    const after = await getEntry(id)
+
+    expect(after?.food).toBe('Risotto')
+    expect(after?.calories).toBe(600)
+    expect(after?.createdAt).toBe(before?.createdAt)
+    expect(after?.updatedAt).toBeGreaterThanOrEqual(before!.updatedAt)
+  })
+
+  it('deletes an entry', async () => {
+    const id = await addEntry(sample)
+    await deleteEntry(id)
+    expect(await getEntry(id)).toBeUndefined()
+  })
+
+  it('getEntriesByDate returns only that day, ordered by time', async () => {
+    await addEntry({ ...sample, time: '13:00', food: 'Lunch' })
+    await addEntry({ ...sample, time: '08:00', food: 'Breakfast' })
+    await addEntry({ ...sample, date: '07-10-2026', food: 'Other day' })
+
+    const day = await getEntriesByDate('06-10-2026')
+    expect(day.map((e) => e.food)).toEqual(['Breakfast', 'Lunch'])
+  })
+
+  it('getAllEntries returns every entry in chronological order', async () => {
+    await addEntry({ ...sample, date: '07-10-2026', food: 'Second day' })
+    await addEntry({ ...sample, date: '06-10-2026', food: 'First day' })
+    await addEntry({ ...sample, date: '06-10-2026', time: '08:00', food: 'Earlier' })
+
+    const all = await getAllEntries()
+    expect(all.map((e) => e.food)).toEqual(['Earlier', 'First day', 'Second day'])
+  })
+})
