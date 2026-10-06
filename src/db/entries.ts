@@ -1,20 +1,43 @@
-import { db, type Entry, type NewEntry } from './db'
+import { db, type DistributivePartial, type Entry, type NewEntry } from './db'
 
 export async function addEntry(input: NewEntry): Promise<number> {
   const now = Date.now()
-  return db.entries.add({ ...input, createdAt: now, updatedAt: now }) as Promise<number>
+  const record = { ...input, createdAt: now, updatedAt: now } as Entry
+  return db.entries.add(record) as Promise<number>
 }
 
 export async function getEntry(id: number): Promise<Entry | undefined> {
   return db.entries.get(id)
 }
 
+// Order within a single day: by time, then by creation order.
+function byTimeThenCreated(a: Entry, b: Entry): number {
+  if (a.time !== b.time) return a.time < b.time ? -1 : 1
+  return a.createdAt - b.createdAt
+}
+
 // Entries for one 'DD-MM-YYYY' date, ordered by time then creation.
 export async function getEntriesByDate(date: string): Promise<Entry[]> {
   const entries = await db.entries.where('date').equals(date).toArray()
-  return entries.sort((a, b) =>
-    a.time !== b.time ? (a.time < b.time ? -1 : 1) : a.createdAt - b.createdAt,
-  )
+  return entries.sort(byTimeThenCreated)
+}
+
+// Entries for several 'DD-MM-YYYY' dates, grouped by date and ordered within
+// each day. Every requested key is present in the result (empty array if none),
+// so callers can index by date without null checks. Used to load a week/day.
+export async function getEntriesByDates(
+  dateKeys: string[],
+): Promise<Record<string, Entry[]>> {
+  const grouped: Record<string, Entry[]> = {}
+  for (const key of dateKeys) grouped[key] = []
+
+  const entries = await db.entries.where('date').anyOf(dateKeys).toArray()
+  for (const entry of entries) {
+    ;(grouped[entry.date] ??= []).push(entry)
+  }
+
+  for (const key of Object.keys(grouped)) grouped[key].sort(byTimeThenCreated)
+  return grouped
 }
 
 // Every entry in chronological order - used for CSV export.
@@ -37,9 +60,10 @@ function toSortableDate(date: string): string {
 
 export async function updateEntry(
   id: number,
-  changes: Partial<NewEntry>,
+  changes: DistributivePartial<NewEntry>,
 ): Promise<number> {
-  return db.entries.update(id, { ...changes, updatedAt: Date.now() })
+  const patch = { ...changes, updatedAt: Date.now() }
+  return db.entries.update(id, patch as DistributivePartial<Entry>)
 }
 
 export async function deleteEntry(id: number): Promise<void> {

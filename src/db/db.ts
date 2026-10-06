@@ -1,22 +1,56 @@
 import Dexie, { type EntityTable } from 'dexie'
 
-export type EntryType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'drink'
+// Top-level kind of a calendar entry (the discriminant).
+export type EntryTypeEnum = 'food' | 'activity' | 'symptom'
 
-export interface Entry {
+// Sub-kinds.
+export type FoodEntryTypeEnum = 'meal' | 'snack' | 'drink'
+export type SymptomTypeEnum =
+  | 'heartburn'
+  | 'regurgitation'
+  | 'chest-pain'
+  | 'nausea'
+  | 'bloating'
+
+// Fields shared by every entry.
+interface BaseEntry {
   id?: number
-  date: string // 'DD-MM-YYYY'
-  entryType: EntryType
-  time: string // 'HH:MM'
-  food: string
-  quantity?: string
+  date: string // 'DD-MM-YYYY', calendar grouping key
+  time: string // 'HH:MM', slot start
   notes?: string
-  calories?: number
   createdAt: number
   updatedAt: number
 }
 
+export interface FoodEntry extends BaseEntry {
+  entryType: 'food'
+  foodType: FoodEntryTypeEnum
+  food: string // what was eaten / drunk
+  quantity?: string // optional free text, e.g. '1 bowl', '200g'
+  calories?: number
+}
+
+export interface ActivityEntry extends BaseEntry {
+  entryType: 'activity'
+  activity: string // what she did, e.g. 'Lay down', 'Walk'
+}
+
+export interface SymptomEntry extends BaseEntry {
+  entryType: 'symptom'
+  symptomType: SymptomTypeEnum
+}
+
+export type Entry = FoodEntry | ActivityEntry | SymptomEntry
+
+// Distribute Omit/Partial over the union so each variant keeps its own fields
+// (a plain Omit/Partial on a union would collapse to the shared fields only).
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
+  ? Omit<T, K>
+  : never
+export type DistributivePartial<T> = T extends unknown ? Partial<T> : never
+
 // Fields supplied on create; id and timestamps are managed by the DAL.
-export type NewEntry = Omit<Entry, 'id' | 'createdAt' | 'updatedAt'>
+export type NewEntry = DistributiveOmit<Entry, 'id' | 'createdAt' | 'updatedAt'>
 
 export const db = new Dexie('etas-eats') as Dexie & {
   entries: EntityTable<Entry, 'id'>

@@ -1,3 +1,35 @@
+# Current Instructions
+
+Cool - let's plan the UI layer. So for this session, I dont want to focus on actual aethestics, lets just get all the underlying mechanics and features of the UI working first. 
+
+For extra context, the reason we're making this app is because my girlfriend has quite bad GERD, so we want to try track foods / activities, along with tracking when she gets sick (and what type of sick, eg "Heartburn", "Nauseous" etc) within the app. That way we can try to figure out the triggers
+
+So for now; I want three usual like sticky buttons on the bottom of the screen; 
+
+- CalendarView (can use a calendar emoji 🗓️ for now)
+- TriggersView (can use ⚠️ emoji for now)
+- AboutView (❓)
+
+Later on, we can use some free font awesome icons. 
+
+The CalendarView is going to be the hardest to make; the idea would be that she can enter both view, add, edit, delete entries on the calendar. 
+
+Lets try make it look like the google calendar app on Android, and example screenshot is shown in root; `google_calendar_ss.jpeg`. 
+
+We basically split up the 24h days into 30min blocks, y-axis is time, x-axis is the days of the week with dates (always from Monday -> Sunday), showing the month name at top and day number. See the screenshot for reference. 
+
+I dont want pinch-zooming, I just want a fixed size calendar, which takes up the full width (again, within reason like the reference), and she can scroll up or down to see differences between 1am and 11pm for example. 
+
+When she clicks a block (eg 13:00-13:30), if it's empty, for now, it'll create a popup that'll essentially act as a create entry form, see `google_calendar_entry_ss.jpeg` which has; 
+
+- EntryType selection like referece (eg in the photo "Event" | "Task" etc)
+- the `date` field prefilled, eg `13:00-13:30`
+- a `food` text field
+- a `quantity` text field // optional 
+- a `notes` text field // optional
+
+---
+
 # Food Diary PWA — EtasEats
 
 ## Overview

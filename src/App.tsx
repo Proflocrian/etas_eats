@@ -1,24 +1,22 @@
+import { useState } from 'react'
+import { BottomNav, type Tab } from './components/BottomNav'
+import { AboutView } from './views/AboutView'
+import { CalendarView } from './views/CalendarView'
+import { TriggersView } from './views/TriggersView'
+
 function App() {
+  const [tab, setTab] = useState<Tab>('calendar')
+
   return (
-    <main
-      className="flex min-h-full flex-col items-center justify-center px-6 text-center"
-      style={{
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-        paddingRight: 'max(1.5rem, env(safe-area-inset-right))',
-      }}
-    >
-      <div className="flex flex-col items-center gap-4">
-        <span className="text-6xl" role="img" aria-label="Fork and knife">
-          🍴
-        </span>
-        <h1 className="text-3xl font-bold text-[#e5556e]">Eta's Eats</h1>
-        <p className="max-w-xs text-base text-neutral-600">
-          Hello, world. The app shell is running.
-        </p>
-      </div>
-    </main>
+    <div className="flex h-full flex-col bg-[#fff8f3]">
+      {/* min-h-0 lets the active view own its own vertical scroll. */}
+      <main className="min-h-0 flex-1 overflow-hidden">
+        {tab === 'calendar' && <CalendarView />}
+        {tab === 'triggers' && <TriggersView />}
+        {tab === 'about' && <AboutView />}
+      </main>
+      <BottomNav active={tab} onChange={setTab} />
+    </div>
   )
 }
 
