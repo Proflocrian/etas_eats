@@ -116,6 +116,15 @@ export function monthName(date: Date): string {
   return MONTH_NAMES[date.getMonth()]
 }
 
+export function monthAbbr(date: Date): string {
+  return MONTH_ABBR[date.getMonth()]
+}
+
+// Two-digit year, e.g. 2026 -> '26'.
+export function shortYear(date: Date): string {
+  return String(date.getFullYear()).slice(-2)
+}
+
 export function weekdayShort(date: Date): string {
   return WEEKDAY_SHORT[date.getDay()]
 }
@@ -127,4 +136,20 @@ export function dayNumber(date: Date): number {
 // e.g. 'Thu, 8 Oct 2026' - used for the entry form's date line.
 export function formatLongDate(date: Date): string {
   return `${weekdayShort(date)}, ${date.getDate()} ${MONTH_ABBR[date.getMonth()]} ${date.getFullYear()}`
+}
+
+// Conversions to/from the native <input type="date"> value ('YYYY-MM-DD').
+export function dateKeyToInput(key: string): string {
+  const [d, m, y] = key.split('-')
+  return `${y}-${m}-${d}`
+}
+export function inputToDateKey(value: string): string {
+  const [y, m, d] = value.split('-')
+  return `${d}-${m}-${y}`
+}
+
+// Current time floored to its 30-min slot start, e.g. 09:47 -> '09:30'.
+export function currentSlot(now: Date = new Date()): string {
+  const mins = now.getHours() * 60 + now.getMinutes()
+  return minutesToTime(Math.floor(mins / SLOT_MINUTES) * SLOT_MINUTES)
 }

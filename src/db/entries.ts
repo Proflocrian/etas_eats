@@ -66,6 +66,13 @@ export async function updateEntry(
   return db.entries.update(id, patch as DistributivePartial<Entry>)
 }
 
+// Replace an entry wholesale. Used when editing: if the entryType changed, a
+// merging update would leave stale fields from the old variant, so we put the
+// full record. Caller preserves id and createdAt; updatedAt is bumped here.
+export async function replaceEntry(entry: Entry): Promise<number> {
+  return db.entries.put({ ...entry, updatedAt: Date.now() }) as Promise<number>
+}
+
 export async function deleteEntry(id: number): Promise<void> {
   return db.entries.delete(id)
 }

@@ -8,9 +8,10 @@ export type FoodEntryTypeEnum = 'meal' | 'snack' | 'drink'
 export type SymptomTypeEnum =
   | 'heartburn'
   | 'regurgitation'
-  | 'chest-pain'
+  | 'abdominal-pain'
   | 'nausea'
   | 'bloating'
+  | 'other'
 
 // Fields shared by every entry.
 interface BaseEntry {
@@ -37,7 +38,7 @@ export interface ActivityEntry extends BaseEntry {
 
 export interface SymptomEntry extends BaseEntry {
   entryType: 'symptom'
-  symptomType: SymptomTypeEnum
+  symptomTypes: SymptomTypeEnum[] // one or more, at least one
 }
 
 export type Entry = FoodEntry | ActivityEntry | SymptomEntry
@@ -59,3 +60,26 @@ export const db = new Dexie('etas-eats') as Dexie & {
 db.version(1).stores({
   entries: '++id, date, entryType',
 })
+
+// v2: symptom entries went from a single `symptomType` to `symptomTypes[]`.
+// Migrate any existing records; the removed 'chest-pain' maps to 'other'.
+db.version(2)
+  .stores({ entries: '++id, date, entryType' })
+  .upgrade((tx) =>
+    tx
+      .table('entries')
+      .toCollection()
+      .modify(
+        (e: {
+          entryType?: string
+          symptomType?: string
+          symptomTypes?: SymptomTypeEnum[]
+        }) => {
+          if (e.entryType === 'symptom' && !e.symptomTypes && e.symptomType) {
+            const mapped = e.symptomType === 'chest-pain' ? 'other' : e.symptomType
+            e.symptomTypes = [mapped as SymptomTypeEnum]
+            delete e.symptomType
+          }
+        },
+      ),
+  )

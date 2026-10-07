@@ -3,11 +3,16 @@ import {
   SLOTS_PER_DAY,
   addDays,
   addWeeks,
+  currentSlot,
+  dateKeyToInput,
   formatLongDate,
+  inputToDateKey,
   isSameDay,
   minutesToTime,
+  monthAbbr,
   monthName,
   parseDateKey,
+  shortYear,
   slotRangeLabel,
   startOfWeek,
   timeSlots,
@@ -96,7 +101,26 @@ describe('display helpers', () => {
     expect(weekdayShort(new Date(2026, 9, 8))).toBe('Thu')
   })
 
+  it('abbreviates month and year', () => {
+    expect(monthAbbr(new Date(2026, 8, 1))).toBe('Sep')
+    expect(monthAbbr(wed)).toBe('Oct')
+    expect(shortYear(wed)).toBe('26')
+  })
+
   it('formats a long date', () => {
     expect(formatLongDate(new Date(2026, 9, 8))).toBe('Thu, 8 Oct 2026')
+  })
+})
+
+describe('form helpers', () => {
+  it('converts between date key and input value', () => {
+    expect(dateKeyToInput('08-10-2026')).toBe('2026-10-08')
+    expect(inputToDateKey('2026-10-08')).toBe('08-10-2026')
+  })
+
+  it('floors the current time to its slot', () => {
+    expect(currentSlot(new Date(2026, 9, 8, 9, 47))).toBe('09:30')
+    expect(currentSlot(new Date(2026, 9, 8, 9, 0))).toBe('09:00')
+    expect(currentSlot(new Date(2026, 9, 8, 0, 29))).toBe('00:00')
   })
 })

@@ -8,6 +8,7 @@ import {
   getEntriesByDate,
   getEntriesByDates,
   getEntry,
+  replaceEntry,
   updateEntry,
 } from './entries'
 
@@ -52,6 +53,28 @@ describe('entries data layer', () => {
     const id = await addEntry(sample)
     await deleteEntry(id)
     expect(await getEntry(id)).toBeUndefined()
+  })
+
+  it('replaceEntry swaps variant without leaving stale fields', async () => {
+    const id = await addEntry(sample) // a food entry
+    const before = await getEntry(id)
+
+    await replaceEntry({
+      id,
+      entryType: 'symptom',
+      symptomTypes: ['heartburn'],
+      date: sample.date,
+      time: sample.time,
+      createdAt: before!.createdAt,
+      updatedAt: before!.updatedAt,
+    })
+    const after = await getEntry(id)
+
+    expect(after?.entryType).toBe('symptom')
+    expect((after as { food?: string }).food).toBeUndefined()
+    expect(after?.id).toBe(id)
+    expect(after?.createdAt).toBe(before?.createdAt)
+    expect(after?.updatedAt).toBeGreaterThanOrEqual(before!.updatedAt)
   })
 
   it('getEntriesByDate returns only that day, ordered by time', async () => {
