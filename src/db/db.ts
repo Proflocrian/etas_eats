@@ -29,11 +29,13 @@ export interface FoodEntry extends BaseEntry {
   food: string // what was eaten / drunk
   quantity?: string // optional free text, e.g. '1 bowl', '200g'
   calories?: number
+  possibleTrigger: boolean // flagged as a possible GERD trigger
 }
 
 export interface ActivityEntry extends BaseEntry {
   entryType: 'activity'
   activity: string // what she did, e.g. 'Lay down', 'Walk'
+  possibleTrigger: boolean // flagged as a possible GERD trigger
 }
 
 export interface SymptomEntry extends BaseEntry {
@@ -42,6 +44,9 @@ export interface SymptomEntry extends BaseEntry {
 }
 
 export type Entry = FoodEntry | ActivityEntry | SymptomEntry
+
+// Entries that can be flagged as a possible trigger (symptoms cannot).
+export type TriggerableEntry = FoodEntry | ActivityEntry
 
 // Distribute Omit/Partial over the union so each variant keeps its own fields
 // (a plain Omit/Partial on a union would collapse to the shared fields only).
@@ -82,4 +87,21 @@ db.version(2)
           }
         },
       ),
+  )
+
+// v3: Food/Activity entries gained a `possibleTrigger` flag (default false).
+db.version(3)
+  .stores({ entries: '++id, date, entryType' })
+  .upgrade((tx) =>
+    tx
+      .table('entries')
+      .toCollection()
+      .modify((e: { entryType?: string; possibleTrigger?: boolean }) => {
+        if (
+          (e.entryType === 'food' || e.entryType === 'activity') &&
+          e.possibleTrigger === undefined
+        ) {
+          e.possibleTrigger = false
+        }
+      }),
   )

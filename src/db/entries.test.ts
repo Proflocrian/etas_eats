@@ -5,9 +5,12 @@ import {
   addEntry,
   deleteEntry,
   getAllEntries,
+  getEntriesBefore,
   getEntriesByDate,
   getEntriesByDates,
   getEntry,
+  getPossibleTriggers,
+  getRecentSymptoms,
   replaceEntry,
   updateEntry,
 } from './entries'
@@ -19,6 +22,7 @@ const sample: NewEntry = {
   time: '13:00',
   food: 'Pasta',
   quantity: '1 bowl',
+  possibleTrigger: false,
 }
 
 beforeEach(async () => {
@@ -119,5 +123,60 @@ describe('entries data layer', () => {
     expect(byDate['08-10-2026'].map((e) => (e as FoodEntry).food)).toEqual([
       'Thursday',
     ])
+  })
+
+  it('getRecentSymptoms returns symptoms newest-first, capped', async () => {
+    await addEntry({
+      date: '06-10-2026',
+      time: '08:00',
+      entryType: 'symptom',
+      symptomTypes: ['heartburn'],
+    })
+    await addEntry({
+      date: '06-10-2026',
+      time: '13:00',
+      entryType: 'symptom',
+      symptomTypes: ['nausea'],
+    })
+    await addEntry({ ...sample, time: '09:00' }) // food, ignored
+
+    const recent = await getRecentSymptoms(5)
+    expect(recent.map((s) => s.time)).toEqual(['13:00', '08:00'])
+  })
+
+  it('getEntriesBefore returns food/activity before a datetime, closest first', async () => {
+    await addEntry({ ...sample, time: '08:00', food: 'Breakfast' })
+    await addEntry({ ...sample, time: '10:00', foodType: 'snack', food: 'Snack' })
+    await addEntry({
+      date: '06-10-2026',
+      time: '11:00',
+      entryType: 'activity',
+      activity: 'Walk',
+      possibleTrigger: false,
+    })
+    await addEntry({ ...sample, time: '14:00', food: 'After' }) // excluded (after)
+    await addEntry({ ...sample, date: '03-10-2026', time: '10:00', food: 'TooOld' }) // >48h before
+
+    const before = await getEntriesBefore('06-10-2026', '13:00', 5)
+    expect(
+      before.map((e) => (e.entryType === 'food' ? e.food : e.activity)),
+    ).toEqual(['Walk', 'Snack', 'Breakfast'])
+  })
+
+  it('getPossibleTriggers returns only flagged entries, newest first', async () => {
+    await addEntry({ ...sample, time: '08:00', food: 'Plain', possibleTrigger: false })
+    await addEntry({ ...sample, time: '09:00', food: 'Spicy', possibleTrigger: true })
+    await addEntry({
+      date: '07-10-2026',
+      time: '07:00',
+      entryType: 'activity',
+      activity: 'Run',
+      possibleTrigger: true,
+    })
+
+    const triggers = await getPossibleTriggers()
+    expect(
+      triggers.map((e) => (e.entryType === 'food' ? e.food : e.activity)),
+    ).toEqual(['Run', 'Spicy'])
   })
 })

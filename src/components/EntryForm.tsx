@@ -14,6 +14,7 @@ import {
   timeSlots,
 } from '../lib/calendar'
 import { DateTimeDialog } from './DateTimeDialog'
+import { YesNoSwitch } from './YesNoSwitch'
 import {
   ENTRY_TYPE_META,
   ENTRY_TYPE_OPTIONS,
@@ -94,6 +95,11 @@ export function EntryForm({
     entry?.entryType === 'food' ? (entry.quantity ?? '') : '',
   )
   const [notes, setNotes] = useState(entry?.notes ?? '')
+  const [possibleTrigger, setPossibleTrigger] = useState(
+    entry?.entryType === 'food' || entry?.entryType === 'activity'
+      ? entry.possibleTrigger
+      : false,
+  )
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
@@ -121,10 +127,16 @@ export function EntryForm({
         foodType,
         food: food.trim(),
         quantity: quantity.trim() || undefined,
+        possibleTrigger,
       }
     }
     if (entryType === 'activity') {
-      return { ...base, entryType: 'activity', activity: activity.trim() }
+      return {
+        ...base,
+        entryType: 'activity',
+        activity: activity.trim(),
+        possibleTrigger,
+      }
     }
     return { ...base, entryType: 'symptom', symptomTypes: [...symptomTypes] }
   }
@@ -199,7 +211,7 @@ export function EntryForm({
             whitespace at the bottom (Notes rises naturally). */}
         <div
           className={`flex flex-col gap-4 px-4 pt-1 ${
-            isEdit ? 'min-h-[540px]' : 'min-h-[470px]'
+            isEdit ? 'min-h-[580px]' : 'min-h-[510px]'
           }`}
         >
           {/* Entry type chips */}
@@ -318,6 +330,16 @@ export function EntryForm({
             </div>
           )}
           </div>
+
+          {/* Possible trigger (Food/Activity only) */}
+          {(entryType === 'food' || entryType === 'activity') && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-neutral-600">
+                Possible Trigger?
+              </span>
+              <YesNoSwitch value={possibleTrigger} onChange={setPossibleTrigger} />
+            </div>
+          )}
 
           {/* Notes (all types) */}
           <div>

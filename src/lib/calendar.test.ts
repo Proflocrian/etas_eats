@@ -5,6 +5,8 @@ import {
   addWeeks,
   currentSlot,
   dateKeyToInput,
+  entryDateTime,
+  formatGap,
   formatLongDate,
   inputToDateKey,
   isSameDay,
@@ -122,5 +124,22 @@ describe('form helpers', () => {
     expect(currentSlot(new Date(2026, 9, 8, 9, 47))).toBe('09:30')
     expect(currentSlot(new Date(2026, 9, 8, 9, 0))).toBe('09:00')
     expect(currentSlot(new Date(2026, 9, 8, 0, 29))).toBe('00:00')
+  })
+
+  it('builds a Date from a date key and time', () => {
+    const dt = entryDateTime('08-10-2026', '13:30')
+    expect(dt.getFullYear()).toBe(2026)
+    expect(dt.getMonth()).toBe(9)
+    expect(dt.getDate()).toBe(8)
+    expect(dt.getHours()).toBe(13)
+    expect(dt.getMinutes()).toBe(30)
+  })
+
+  it('formats a gap before a symptom', () => {
+    expect(formatGap(30)).toBe('30m before')
+    expect(formatGap(60)).toBe('1h before')
+    expect(formatGap(150)).toBe('2h 30m before')
+    expect(formatGap(24 * 60)).toBe('1d before')
+    expect(formatGap(26 * 60)).toBe('1d 2h before')
   })
 })

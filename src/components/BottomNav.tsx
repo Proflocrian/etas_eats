@@ -1,8 +1,9 @@
-export type Tab = 'calendar' | 'triggers' | 'about'
+export type Tab = 'calendar' | 'triggers' | 'settings' | 'about'
 
 const ITEMS: { tab: Tab; emoji: string; label: string }[] = [
   { tab: 'calendar', emoji: '🗓️', label: 'Calendar' },
   { tab: 'triggers', emoji: '⚠️', label: 'Triggers' },
+  { tab: 'settings', emoji: '⚙️', label: 'Settings' },
   { tab: 'about', emoji: '❓', label: 'About' },
 ]
 

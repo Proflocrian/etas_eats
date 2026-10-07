@@ -132,6 +132,9 @@ export function CalendarGrid({
                   const pos = group.indexOf(e)
                   const w = 100 / group.length
                   const meta = ENTRY_TYPE_META[e.entryType]
+                  const isTrigger =
+                    (e.entryType === 'food' || e.entryType === 'activity') &&
+                    e.possibleTrigger
                   return (
                     <button
                       key={e.id}
@@ -148,7 +151,10 @@ export function CalendarGrid({
                         borderLeft: `3px solid ${meta.border}`,
                       }}
                     >
-                      <span className="block truncate">{entryTitle(e)}</span>
+                      <span className="block truncate">
+                        {isTrigger && '🚩 '}
+                        {entryTitle(e)}
+                      </span>
                     </button>
                   )
                 })}

@@ -1,32 +1,21 @@
 # Current Instructions
 
-Cool - let's plan the UI layer. So for this session, I dont want to focus on actual aethestics, lets just get all the underlying mechanics and features of the UI working first. 
+There are two tabs; 
 
-For extra context, the reason we're making this app is because my girlfriend has quite bad GERD, so we want to try track foods / activities, along with tracking when she gets sick (and what type of sick, eg "Heartburn", "Nauseous" etc) within the app. That way we can try to figure out the triggers
+- Last Symptoms (think a cool emoji)
+- Trigger List (think of another suitable emoji)
 
-So for now; I want three usual like sticky buttons on the bottom of the screen; 
+Where, the Last Symptoms shows the last 5 times there was a SymptomEntry (in reverse chronological order), then under each SymptomEntry, it shows the 4 FoodEntry | ActivityEntry that happened before that. This should be shown in an intuitive way, so try be creative with it. 
 
-- CalendarView (can use a calendar emoji 🗓️ for now)
-- TriggersView (can use ⚠️ emoji for now)
-- AboutView (❓)
+The idea being here, lets say she had Heartburn today at 13:00, she can see the 4 FoodEntry | ActivityEntry that happened just prior, she can then click a checkbox on the right of those Entrys called `Possible Trigger` (so we need to add this as a bool to those to Entry Types with default == False). This is so she can review what she did before, just prior to feeling sick. 
 
-Later on, we can use some free font awesome icons. 
+The trigger list tab (for now), is just a list of possible triggers (ie where `possible_trigger==true`). This should be in bulletpoint form, where just the food/activity name is show. If she clicks that entry, she'll get something very similar to the `EntryForm` popup, where she can see all of the information of the Entry, but in this view, she can only change `possible_trigger` and nothing else about this Entry. 
 
-The CalendarView is going to be the hardest to make; the idea would be that she can enter both view, add, edit, delete entries on the calendar. 
+Likewise, when back on the CalendarView, there is now a `possible_trigger`, which ofc, she can flick yes / no there. 
 
-Lets try make it look like the google calendar app on Android, and example screenshot is shown in root; `google_calendar_ss.jpeg`. 
+This was quite hard to explain, so lmk if you understand, and please feel to ask if you have any clarifying questions. 
 
-We basically split up the 24h days into 30min blocks, y-axis is time, x-axis is the days of the week with dates (always from Monday -> Sunday), showing the month name at top and day number. See the screenshot for reference. 
-
-I dont want pinch-zooming, I just want a fixed size calendar, which takes up the full width (again, within reason like the reference), and she can scroll up or down to see differences between 1am and 11pm for example. 
-
-When she clicks a block (eg 13:00-13:30), if it's empty, for now, it'll create a popup that'll essentially act as a create entry form, see `google_calendar_entry_ss.jpeg` which has; 
-
-- EntryType selection like referece (eg in the photo "Event" | "Task" etc)
-- the `date` field prefilled, eg `13:00-13:30`
-- a `food` text field
-- a `quantity` text field // optional 
-- a `notes` text field // optional
+And again, I dont really know the _best_ way to show these two tabs, so you'll have to be quite creative here
 
 ---
 

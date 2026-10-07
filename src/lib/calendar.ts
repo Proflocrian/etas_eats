@@ -153,3 +153,23 @@ export function currentSlot(now: Date = new Date()): string {
   const mins = now.getHours() * 60 + now.getMinutes()
   return minutesToTime(Math.floor(mins / SLOT_MINUTES) * SLOT_MINUTES)
 }
+
+// A Date at the entry's local date + time.
+export function entryDateTime(dateKey: string, time: string): Date {
+  const d = parseDateKey(dateKey)
+  const [h, m] = time.split(':').map(Number)
+  d.setHours(h, m, 0, 0)
+  return d
+}
+
+// Human gap, e.g. '30m before', '5h before', '5h 30m before', '1d 3h before'.
+export function formatGap(minutes: number): string {
+  const mins = Math.max(0, Math.round(minutes))
+  if (mins < 60) return `${mins}m before`
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h < 24) return m ? `${h}h ${m}m before` : `${h}h before`
+  const d = Math.floor(h / 24)
+  const rh = h % 24
+  return rh ? `${d}d ${rh}h before` : `${d}d before`
+}
