@@ -1,3 +1,18 @@
+# Current Instructions
+
+Again, well done. This next one is a bit more difficult to describe. One small thing to note; it should be `11:11` not `1:11` - my mistake.
+
+`11:11` is our favourite time of day, so we usually send each other a cute message of just `🩵` at that time - this is just to let the other know that we are thinking of each other. The light blue heart is a symbol of our love. 
+
+See the photo in `screenshots/11_11.png`, as in actually view / open the photo. 
+
+That's the sort of colour palette we're going for. And in the middle of the photo you'll see a white heart with clock hands - that are pointing to 11:11. 
+
+You might have to ask a few more questions than before to get a better idea of the vibe here. It's to be cutesy, minimal, classy / modern, and cute (but definitely not cheesy)
+
+
+---
+
 # Food Diary PWA — EtasEats
 
 ## Overview
