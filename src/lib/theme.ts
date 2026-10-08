@@ -65,7 +65,7 @@ export const COLORS = Object.fromEntries(
 // ---------------------------------------------------------------------------
 // Themes. Add entries here; each supplies a full Palette.
 // ---------------------------------------------------------------------------
-export type ThemeId = 'etas-eats' | 'cunty-leopard' | 'trashy-2000s' | 'one-eleven'
+export type ThemeId = 'etas-eats' | 'cunty-leopard' | 'trashy-2000s' | 'eleven-eleven'
 
 export interface Theme {
   label: string
@@ -156,8 +156,8 @@ export const THEMES: Record<ThemeId, Theme> = {
       sheetBg: '#ffffff',
     },
   },
-  'one-eleven': {
-    label: '1:11',
+  'eleven-eleven': {
+    label: '11:11',
     font: "'Palatino Linotype', 'Palatino', 'Book Antiqua', serif",
     palette: {
       primaryAction: '#7C6CF0',

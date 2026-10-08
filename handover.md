@@ -204,6 +204,82 @@ read before CSS loads, can't use the var).
 - **Pinch-zoom disabled** via the viewport meta in `index.html`.
 - `calendar_view_ss.jpeg` at the repo root is a current-state screenshot reference.
 
+## Active workstream: theme redesign (started 2026-10-08)
+
+We are turning the four themes from placeholder palettes into genuinely designed looks, using
+design specs produced by **Claude Design**. **A new instance picking this up must read the
+specs in full before touching any theme code.**
+
+### Where the design material lives
+- **Prompts** (what we asked Claude Design for, incl. chosen direction per theme) - repo root:
+  `cunty_leopard_prompt.md`, `2000s_prompt.md`, `etaseats_prompt.md`, `one_eleven_prompt.md`.
+- **Specs** (what Claude Design returned - the source of truth for implementation) -
+  `theme_specs/`: `etas_eats_theme_spec.md`, `cunty_leopard_theme_spec.md`,
+  `trashy_2000s_theme_spec.md`, `11_11_theme_spec.md`. **Read all four in full.** (All 4 received.)
+- **Assets** - `theme_specs/leopard-bold.svg`, `leopard-soft.svg`, `leopard-dark.svg`:
+  seamless 200x200 leopard tiles, three colourways, for Cunty Leopard. NOTE: each carries ~10 KB
+  of embedded C2PA metadata (a `<metadata>` block, ~47 KB total) that should be stripped before
+  bundling; the print paths are intact and tile correctly.
+
+### Chosen direction per theme (from the prompts / Q&A)
+- **EtasEats** (default): a clean **UberEats look-alike** - white/black/`#06C167` green; green =
+  Food, with blue (Activity) + orange (Symptom) so the three stay distinct on the grid; font Figtree.
+- **Cunty Leopard**: maximalist glam, **classic natural leopard** (tan/caramel/espresso/black on
+  cream) + metallic gold; real SVG print as the hero; fonts Jost + Bodoni Moda italic.
+- **Trashy 2000s**: **full trashy Y2K, bubblegum pink** (Posh Beckham as muse) - velour, rhinestone
+  bling, stars; baby blue + lilac separate entry types, gold for triggers; fonts Nunito + Yellowtail.
+- **11:11** (internal id `eleven-eleven`; label `'11:11'` - both FIXED in `theme.ts`. The old
+  persisted key `one-eleven` simply falls back to the default `etas-eats`, which is fine): a **dark
+  denim** theme. Marbled-wave accents only on sheets, a faint header strip, and the theme card (never
+  the grid). Font Quicksand. The 🩵 (`#A8D8EA`) is the rare "this one" accent (selected tab, today,
+  Save). Two owner tweaks vs the raw spec: the calendar 11:11 marker is the **actual 🩵 emoji**,
+  always shown, nudged to the **11:11 point** in the gutter (~11 min below the 11:00 line); and the
+  FAB ripple is **always-on, ~11s loop** (not time-of-day dependent), so **no `useIsEleven()` hook is
+  needed**. (Both changes are already written into `11_11_theme_spec.md`.)
+
+### What the specs require beyond today's flat-palette system
+The current system is flat hexes -> CSS vars -> `COLORS.x`. The specs go further, in three tiers:
+1. **More tokens** (easy): ~15-25 new per-theme values each incl. **string-valued** tokens
+   (gradients, box-shadows, `background-image` strings). CSS custom properties hold these fine.
+2. **Themify hard-coded neutrals** (mechanical): grid lines, inputs, dividers, text, nav hairline
+   are currently literal `neutral-*` Tailwind classes; the specs want them theme-controlled.
+3. **Per-theme structural treatments + fonts + motion** (the real work): FAB variants (plain /
+   gold 3-layer / 14-gem halo), leopard trims + sheet bands, holo/bedazzle, patterned app bg +
+   grid scrim, new small components (`LeopardTrim`, `GoldShimmer`, `Bedazzle`, `Sparkles`,
+   `FabGems`, theme-aware FAB), offline-bundled fonts (+ PWA precache), per-theme keyframes behind
+   `prefers-reduced-motion`.
+
+### Architecture principles (how we keep it from breaking)
+- Add new keys to the `Palette` type so **TypeScript forces every theme to define every key** -
+  completeness is compiler-enforced. Non-opted themes get flat fallbacks (`appBgImage: 'none'`,
+  `fontDisplay` = `font`, plain shadows).
+- **Gate every structural extra behind a per-theme flag/capability** (or a component that renders
+  plain/`null` for themes that don't opt in). A theme with no `fabTreatment` keeps today's FAB. The
+  11:11 spec's proposed `theme.decor = { sheetWave, headerWave, watermark, elevenRow, fabRipple, ... }`
+  flags are exactly this pattern; use one unified decor/flags concept across all themes.
+- **Context-dependent tokens** (needed by 11:11): controls look different on the dark app vs on its
+  frosted light sheet. Don't branch in every component - let the sheet wrapper **re-map the CSS vars
+  for its subtree** (e.g. inside `.sheet`, redefine `--color-pill-bg` to the on-sheet value). Build
+  this override hook into the token layer in Phase 1-2. Also note: 11:11 is a dark theme, so Tier 2
+  (themifying text/line literals) must be complete, and the iOS status-bar colour is a static global
+  (`theme-color` / status-bar-style) that can't be recoloured per theme - a known limitation.
+- Fonts bundled for offline (Figtree via `@fontsource-variable/figtree`; Jost/Bodoni + Nunito/
+  Yellowtail self-hosted woff2 in `public/fonts`, added to the vite-plugin-pwa precache).
+- Tests (`lib/calendar`, `db/*`) are untouched by theming and must stay green.
+
+### Agreed phased plan
+1. **Phase 1 - foundation.** Extend `theme.ts` (richer `Palette`, new + string tokens, per-theme
+   flags) and drop in the three new **colour palettes + fonts only** (no treatments). All themes
+   look right in colour/type; verify nothing broke. (NEXT - not started.)
+2. **Phase 2 - themify the neutrals** (tier 2) so themes own grid lines, inputs, dividers, text.
+3. **Phase 3 - first full vertical slice: the default EtasEats theme** (least exotic; establishes
+   the treatment + motion plug-in pattern).
+4. **Phase 4 - Cunty Leopard** (SVG tiles, trims, gold, layered FAB).
+5. **Phase 5 - Trashy 2000s** (velour noise, bedazzle, 14-gem FAB, stars).
+6. **Phase 6 - 11:11** (most structurally complex: dark theme, on-sheet var overrides, wave accents,
+   heart-clock SVG + 🩵 emoji marker, frosted `backdrop-filter` panels, always-on FAB ripple).
+Each phase is small and independently verifiable on-device.
+
 ## Status
 
 **Done:** data layer + migrations (v1-v4); calendar Week/Day grid with CRUD (create via slot
@@ -221,9 +297,9 @@ navigation; and persisted calendar view state + 06:30 open position.
 - Wire up the other **Settings placeholders**: Language (i18n), Request Features / Bug Support,
   and the Danger Area **Delete All Data** (should clear the Dexie `entries` table).
 - **About** page content (still a placeholder).
-- **Visual design polish.** `cunty-leopard` / `trashy-2000s` / `one-eleven` are placeholder
-  palettes/fonts; the theme system is in place but the actual palettes/spacing are still being
-  dialed in. Font Awesome icons were mentioned as a later swap for the emoji.
+- **Visual design polish / theme redesign.** IN PROGRESS - see "Active workstream: theme redesign"
+  above. The four themes are being rebuilt from Claude Design specs (`theme_specs/`). Phase 1 not
+  started yet. Font Awesome icons were mentioned as a later swap for the emoji.
 - **Phase 2 notifications** (iOS Web Push via a GitHub Actions cron - see `context.md`).
 - Minor: the unselected Triggers sub-tab label is still a structural neutral grey (not themed);
   Back closing an open modal before switching tabs; Duplicate doesn't run the future-date check.
