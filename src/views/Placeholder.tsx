@@ -22,7 +22,7 @@ export function Placeholder({
         {emoji}
       </span>
       <h1 className="text-2xl font-bold text-primary">{title}</h1>
-      <p className="max-w-xs text-neutral-600">{message}</p>
+      <p className="max-w-xs text-text-secondary">{message}</p>
     </div>
   )
 }

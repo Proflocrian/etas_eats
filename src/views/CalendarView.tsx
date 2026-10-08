@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CalendarGrid } from '../components/CalendarGrid'
+import { Fab } from '../components/Fab'
 import { EntryForm } from '../components/EntryForm'
 import type { Entry, EntryTypeEnum } from '../db/db'
 import { getEntriesByDates } from '../db/entries'
@@ -58,7 +59,7 @@ function FilterChip({
       aria-pressed={active}
       aria-label={name ?? label}
       title={name}
-      className={`${PILL_CLASS} min-w-[2.5rem] whitespace-nowrap text-center text-neutral-600 ${className} ${
+      className={`${PILL_CLASS} tap min-w-[2.5rem] whitespace-nowrap text-center text-text-secondary ${className} ${
         active ? 'font-semibold' : ''
       }`}
       style={{
@@ -160,7 +161,7 @@ export function CalendarView() {
 
   const unit = viewMode === 'week' ? 'week' : 'day'
   const arrowBtn =
-    'flex h-8 w-7 shrink-0 items-center justify-center rounded-lg text-lg text-neutral-600 active:bg-neutral-200'
+    'flex h-8 w-7 shrink-0 items-center justify-center rounded-lg text-lg text-text-secondary active:bg-divider'
 
   return (
     <div
@@ -182,7 +183,7 @@ export function CalendarView() {
           >
             ‹
           </button>
-          <h1 className="truncate text-base font-bold text-neutral-800">
+          <h1 className="font-display truncate text-base font-bold text-text-primary">
             {monthLabel}
           </h1>
           <button
@@ -198,7 +199,7 @@ export function CalendarView() {
           <button
             type="button"
             onClick={() => setAnchor(new Date())}
-            className="rounded-lg px-2 py-1 text-sm font-medium text-neutral-700 active:bg-neutral-200"
+            className="rounded-lg px-2 py-1 text-sm font-medium text-text-secondary active:bg-divider"
           >
             Today
           </button>
@@ -208,7 +209,7 @@ export function CalendarView() {
             aria-label={
               viewMode === 'week' ? 'Switch to Day view' : 'Switch to Week view'
             }
-            className="relative flex w-28 shrink-0 overflow-hidden rounded-lg border border-neutral-300 text-sm"
+            className="relative flex w-28 shrink-0 overflow-hidden rounded-lg border border-input-border text-sm"
           >
             {/* Sliding highlight - slides to the active option. */}
             <span
@@ -216,14 +217,14 @@ export function CalendarView() {
               className="absolute inset-y-0 left-0 w-1/2 transition-transform duration-200 ease-out"
               style={{
                 transform: viewMode === 'day' ? 'translateX(100%)' : 'translateX(0)',
-                backgroundColor: COLORS.primaryAction,
+                backgroundColor: COLORS.segmentActiveBg,
               }}
             />
             {(['week', 'day'] as ViewMode[]).map((m) => (
               <span
                 key={m}
                 className={`relative z-10 flex-1 py-1 text-center ${
-                  viewMode === m ? 'font-semibold text-white' : 'text-neutral-600'
+                  viewMode === m ? 'font-semibold text-segment-active-text' : 'text-text-secondary'
                 }`}
               >
                 {m === 'week' ? 'Week' : 'Day'}
@@ -243,7 +244,7 @@ export function CalendarView() {
           accent={FILTER_CHIP_META.all.border}
           onClick={() => setActiveTypes(new Set())}
         />
-        <span className="mx-0.5 w-px shrink-0 self-stretch bg-neutral-200" />
+        <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />
         {ENTRY_TYPE_ORDER.map((t) => {
           const meta = ENTRY_TYPE_META[t]
           return (
@@ -257,7 +258,7 @@ export function CalendarView() {
             />
           )
         })}
-        <span className="mx-0.5 w-px shrink-0 self-stretch bg-neutral-200" />
+        <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />
         <FilterChip
           label={FILTER_CHIP_META.trigger.display}
           name={FILTER_CHIP_META.trigger.label}
@@ -276,27 +277,7 @@ export function CalendarView() {
       />
 
       {/* Floating add button - create at a chosen date/time. */}
-      <button
-        type="button"
-        onClick={openCreate}
-        aria-label="Add entry"
-        className="absolute bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg active:brightness-95"
-        style={{ backgroundColor: COLORS.fabBg }}
-      >
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          aria-hidden="true"
-        >
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-      </button>
+      <Fab onClick={openCreate} />
 
       {creating && (
         <EntryForm

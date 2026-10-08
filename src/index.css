@@ -1,20 +1,272 @@
 @import 'tailwindcss';
 
-/* Primary action colour. Generates bg-primary / text-primary / border-primary.
-   The value here is only the default/fallback for the Simple theme; the active
-   theme overrides --color-primary at runtime (see theme.ts applyTheme). */
+/* Theme tokens. Each generates Tailwind colour utilities (bg-*, text-*, border-*)
+   that reference the var, so the active theme's runtime overrides (theme.ts
+   applyTheme, set on :root) drive them live. The values here are only the
+   pre-JS fallbacks (default EtasEats theme); applyTheme runs before first paint. */
 @theme {
-  --color-primary: #6B00EB;
+  --color-primary: #06C167;
+  --color-on-primary: #000000;
+  --color-text-primary: #000000;
+  --color-text-secondary: #6B6B6B;
+  --color-text-muted: #6B6B6B;
+  --color-divider: #EEEEEE;
+  --color-card-border: #EEEEEE;
+  --color-grid-line: #EBEBEB;
+  --color-grid-line-half: #F6F6F6;
+  --color-grid-col: #F2F2F2;
+  --color-input-bg: #F3F3F3;
+  --color-input-border: #F3F3F3;
+  --color-placeholder: #9E9E9E;
+  --color-switch-track: #F3F3F3;
+  --color-switch-no-bg: #000000;
+  --color-switch-no-text: #FFFFFF;
+  --color-trigger-switch-text: #FFFFFF;
+  --color-segment-active-bg: #000000;
+  --color-segment-active-text: #FFFFFF;
+  --color-danger: #C21500;
+  --color-danger-bg: #FFF0EE;
+  --color-danger-text: #C21500;
+  --color-danger-border: #E11900;
+}
+
+/* Heading font. Themes with a display font (leopard Bodoni, 2000s Yellowtail)
+   apply it via this class; others fall back to the body font, so it's a no-op. */
+.font-display {
+  font-family: var(--app-font-display, inherit);
+  font-style: var(--app-font-display-style, normal);
+}
+
+/* Themed placeholder colour for all inputs/textareas in one place. */
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-placeholder);
+}
+
+/* Context override: inside a bottom sheet / dialog, a handful of tokens switch to
+   their on-sheet values (needed by dark themes like 11:11, whose light frosted
+   sheet needs dark ink + light controls). applyTheme always sets the matching
+   *-sheet vars (= the theme's onSheet override, or the base value), so these are
+   never invalid and themes without an override are unaffected. */
+.sheet-scope {
+  --color-text-primary: var(--color-text-primary-sheet);
+  --color-text-secondary: var(--color-text-secondary-sheet);
+  --color-text-muted: var(--color-text-muted-sheet);
+  --color-pill-bg: var(--color-pill-bg-sheet);
+  --color-pill-border-idle: var(--color-pill-border-idle-sheet);
+  --color-input-bg: var(--color-input-bg-sheet);
+  --color-input-border: var(--color-input-border-sheet);
+  --color-switch-track: var(--color-switch-track-sheet);
+  --color-switch-no-bg: var(--color-switch-no-bg-sheet);
+  --color-switch-no-text: var(--color-switch-no-text-sheet);
 }
 
 :root {
   color-scheme: light;
+  /* Pre-JS fallbacks for the string-valued treatment tokens (default theme).
+     applyTheme overrides these on :root before first paint. */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.06);
+  --shadow-sheet: 0 -8px 32px rgba(0, 0, 0, 0.14);
+  --shadow-fab: 0 6px 16px rgba(6, 193, 103, 0.32), 0 2px 4px rgba(0, 0, 0, 0.1);
+  --color-scrim: rgba(0, 0, 0, 0.4);
+  /* Save button fill/text - defaults to the theme's primary; a theme can override
+     (e.g. leopard sets gold-metal via treatments). */
+  --save-bg: var(--color-primary);
+  --save-text: var(--color-on-primary);
 }
 
 html,
 body,
 #root {
   height: 100%;
+}
+
+/* ---- Motion (Phase 3). Reusable primitives; all transform/opacity only. ---- */
+
+/* Press feedback: tappable controls dip on press; the FAB dips further. */
+.tap {
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tap:active {
+  transform: scale(0.96);
+}
+.tap-fab:active {
+  transform: scale(0.92);
+}
+
+/* Bottom sheets slide up on open. */
+@keyframes sheet-enter {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.sheet-enter {
+  animation: sheet-enter 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The scrim fades in behind an opening sheet/modal. */
+@keyframes scrim-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.scrim-fade {
+  animation: scrim-fade 0.24s ease;
+}
+
+/* ---- Cunty Leopard theme motion (gated by the cl-* classes, added only on that
+   theme). All transform/opacity; neutralized by the reduced-motion guard below. ---- */
+
+/* M1 - gold sheen sweeping across the Save button while a sheet is open. */
+@keyframes cl-sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  35%,
+  100% {
+    transform: translateX(240%);
+  }
+}
+.cl-save {
+  position: relative;
+  overflow: hidden;
+}
+.cl-save::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 50%;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent, rgba(255, 250, 228, 0.9), transparent);
+  animation: cl-sheen 4.5s ease-in-out infinite;
+}
+
+/* M2 - a gold ring pulses out of the FAB a few times after the calendar mounts. */
+@keyframes cl-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  70%,
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+.cl-fab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #e6c474;
+  pointer-events: none;
+  animation: cl-ring 3.6s ease-out 3;
+}
+
+/* M3 - a sheen passes across the leopard band once on sheet open; loops slowly on
+   the selected theme card. */
+@keyframes cl-band {
+  from {
+    transform: translateX(-140%);
+  }
+  to {
+    transform: translateX(420%);
+  }
+}
+.cl-band {
+  position: relative;
+  overflow: hidden;
+}
+.cl-band::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 244, 214, 0.55), transparent);
+  animation: cl-band 1.4s 0.3s ease-out 1 both;
+}
+.cl-theme-card {
+  position: relative;
+  overflow: hidden;
+}
+.cl-theme-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 244, 214, 0.55), transparent);
+  animation: cl-band 6s 1s ease-in-out infinite;
+}
+
+/* ---- Trashy 2000s theme motion. ---- */
+
+/* Holographic sheet band: the gradient drifts slowly. */
+@keyframes tt-sheen {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+.tt-holo-band {
+  background-size: 300% 100%;
+  animation: tt-sheen 7s ease-in-out infinite alternate;
+}
+
+/* A white band shimmers across the gem FAB every few seconds. */
+@keyframes tt-shimmer {
+  0%,
+  72% {
+    transform: translateX(-140%) rotate(20deg);
+  }
+  100% {
+    transform: translateX(240%) rotate(20deg);
+  }
+}
+.tt-fab-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 0;
+  width: 40%;
+  height: 140%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: tt-shimmer 6s ease-in-out infinite;
+}
+
+/* The star on the selected nav tab pops in on tab change. */
+@keyframes tt-pop {
+  0% {
+    transform: scale(0);
+  }
+  60% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.tt-nav-star {
+  animation: tt-pop 0.5s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* App-like: no pull-to-refresh / scroll chaining when dragging at the edges. */

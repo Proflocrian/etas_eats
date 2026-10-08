@@ -29,6 +29,13 @@ export default defineConfig({
           },
         ],
       },
+      workbox: {
+        // Precache the app shell plus the Latin font subsets so the installed PWA
+        // works fully offline. The `*-latin-*` glob also catches `-latin-ext-`
+        // (accents) while skipping the cyrillic/vietnamese/math/symbol subsets the
+        // UI never renders, keeping the precache lean.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}', '**/*-latin-*.woff2'],
+      },
       // Lets us verify the service worker in `pnpm dev` (not just in a build).
       devOptions: {
         enabled: true,

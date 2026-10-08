@@ -8,7 +8,9 @@ import {
   slotRangeLabel,
   timeSlots,
 } from '../lib/calendar'
+import { useDecor } from '../lib/theme-context'
 import { DateTimeDialog } from './DateTimeDialog'
+import { SheetGrabber } from './decor'
 import { YesNoSwitch } from './YesNoSwitch'
 import {
   ACTIVITY_PLACEHOLDERS,
@@ -46,7 +48,7 @@ function Pill({
       aria-pressed={selected}
       aria-label={ariaLabel}
       title={ariaLabel}
-      className={`${PILL_CLASS} text-neutral-600 ${selected ? 'font-semibold' : ''}`}
+      className={`${PILL_CLASS} tap text-text-secondary ${selected ? 'font-semibold' : ''}`}
       style={{
         backgroundColor: PILL_BG_COLOUR,
         borderColor: selected ? accent : PILL_BORDER_IDLE,
@@ -58,8 +60,8 @@ function Pill({
 }
 
 const inputClass =
-  'w-full rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-800 outline-none focus:border-[var(--field-accent)]'
-const labelClass = 'mb-1 block text-sm font-medium text-neutral-600'
+  'w-full rounded-lg border border-input-border bg-input-bg px-3 py-2 text-base text-text-primary outline-none focus:border-[var(--field-accent)]'
+const labelClass = 'mb-1 block text-sm font-medium text-text-secondary'
 
 export function EntryForm({
   entry,
@@ -75,6 +77,7 @@ export function EntryForm({
   onSaved: () => void
 }) {
   const isEdit = entry !== undefined
+  const decor = useDecor()
 
   const [dateKey, setDateKey] = useState(initialDateKey)
   const [time, setTime] = useState(initialTime)
@@ -224,41 +227,53 @@ export function EntryForm({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40"
+      className="scrim-fade fixed inset-0 z-50 flex flex-col justify-end"
       onClick={onClose}
+      style={{ backgroundColor: COLORS.scrim }}
     >
+      {/* Outer wrapper owns the drag transform; the inner element owns the scroll.
+          Keeping them separate avoids an iOS compositing desync where transforming a
+          scroll container per-frame makes child layers (the leopard band) drift. */}
       <div
-        ref={sheetRef}
-        className="max-h-[67%] overflow-y-auto overscroll-contain rounded-t-2xl"
+        className="sheet-enter flex max-h-[67%] flex-col overflow-hidden rounded-t-2xl"
         onClick={(e) => e.stopPropagation()}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         style={{
           backgroundColor: COLORS.sheetBg,
-          paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))',
+          boxShadow: COLORS.sheetShadow,
           transform: dragY ? `translateY(${dragY}px)` : undefined,
           transition: dragging ? 'none' : 'transform 0.2s ease-out',
         }}
       >
+        <div
+          ref={sheetRef}
+          className="sheet-scope min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}
+        >
+          <SheetGrabber />
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3">
           <button
             type="button"
             onClick={onClose}
             aria-label="Cancel"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-xl text-neutral-500 active:bg-neutral-100"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-xl text-text-muted active:bg-divider"
           >
             ✕
           </button>
-          <span className="text-sm font-semibold text-neutral-700">
+          <span className="font-display text-sm font-semibold text-text-secondary">
             {isEdit ? 'Edit entry' : 'New entry'}
           </span>
           <button
             type="button"
             onClick={handleSave}
             disabled={missingRequired || saving}
-            className="rounded-full bg-primary px-5 py-1.5 text-sm font-semibold text-white disabled:opacity-40"
+            className={`tap rounded-full px-5 py-1.5 text-sm font-semibold disabled:opacity-40 ${
+              decor.goldSave && !missingRequired && !saving && !dragging ? 'cl-save' : ''
+            }`}
+            style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
           >
             Save
           </button>
@@ -274,7 +289,7 @@ export function EntryForm({
           {/* Entry type: editable chips on create, read-only on edit. */}
           {isEdit ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-neutral-600">
+              <span className="text-sm font-medium text-text-secondary">
                 Entry Type:
               </span>
               <span
@@ -405,13 +420,14 @@ export function EntryForm({
           {/* Possible trigger (Food/Activity only) */}
           {(entryType === 'food' || entryType === 'activity') && (
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-neutral-600">
+              <span className="text-sm font-medium text-text-secondary">
                 Possible Trigger?
               </span>
               <YesNoSwitch
                 value={possibleTrigger}
                 onChange={setPossibleTrigger}
                 accentColor={COLORS.triggerPillBorder}
+                accentText={COLORS.triggerSwitchText}
               />
             </div>
           )}
@@ -445,13 +461,13 @@ export function EntryForm({
           {/* Delete (edit mode only) */}
           {isEdit &&
             (confirmDelete ? (
-              <div className="flex items-center justify-between rounded-lg bg-red-50 px-3 py-2">
-                <span className="text-sm text-red-700">Are you sure babe?</span>
+              <div className="flex items-center justify-between rounded-lg bg-danger-bg px-3 py-2">
+                <span className="text-sm text-danger-text">Are you sure babe?</span>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(false)}
-                    className="rounded-lg px-3 py-1.5 text-sm text-neutral-600"
+                    className="rounded-lg px-3 py-1.5 text-sm text-text-secondary"
                   >
                     Cancel
                   </button>
@@ -469,11 +485,12 @@ export function EntryForm({
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="self-start text-sm font-medium text-red-600"
+                className="self-start text-sm font-medium text-danger-text"
               >
                 Delete entry
               </button>
             ))}
+        </div>
         </div>
       </div>
 
@@ -490,21 +507,22 @@ export function EntryForm({
 
       {confirmFuture && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4"
+          className="scrim-fade fixed inset-0 z-[60] flex items-center justify-center px-4"
+          style={{ backgroundColor: COLORS.scrim }}
           onClick={(e) => {
             e.stopPropagation()
             setConfirmFuture(false)
           }}
         >
           <div
-            className="w-full max-w-xs rounded-2xl p-4"
-            style={{ backgroundColor: COLORS.sheetBg }}
+            className="sheet-scope w-full max-w-xs rounded-2xl p-4"
+            style={{ backgroundColor: COLORS.sheetBg, boxShadow: COLORS.sheetShadow }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="mb-2 text-base font-semibold text-neutral-800">
+            <h2 className="mb-2 text-base font-semibold text-text-primary">
               Are you sure you wanna save this entry? 👀
             </h2>
-            <p className="mb-4 text-sm text-neutral-600">
+            <p className="mb-4 text-sm text-text-secondary">
               This is in the future - have you time travelled babe? If so, give me
               gambling tips xxx
             </p>
@@ -512,7 +530,7 @@ export function EntryForm({
               <button
                 type="button"
                 onClick={() => setConfirmFuture(false)}
-                className="rounded-lg px-4 py-1.5 text-sm text-neutral-600"
+                className="rounded-lg px-4 py-1.5 text-sm text-text-secondary"
               >
                 Cancel
               </button>
@@ -522,7 +540,8 @@ export function EntryForm({
                   setConfirmFuture(false)
                   doSave()
                 }}
-                className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white"
+                className="tap rounded-lg px-4 py-1.5 text-sm font-semibold"
+                style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
               >
                 Save
               </button>

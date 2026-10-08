@@ -268,14 +268,121 @@ The current system is flat hexes -> CSS vars -> `COLORS.x`. The specs go further
 - Tests (`lib/calendar`, `db/*`) are untouched by theming and must stay green.
 
 ### Agreed phased plan
-1. **Phase 1 - foundation.** Extend `theme.ts` (richer `Palette`, new + string tokens, per-theme
-   flags) and drop in the three new **colour palettes + fonts only** (no treatments). All themes
-   look right in colour/type; verify nothing broke. (NEXT - not started.)
-2. **Phase 2 - themify the neutrals** (tier 2) so themes own grid lines, inputs, dividers, text.
-3. **Phase 3 - first full vertical slice: the default EtasEats theme** (least exotic; establishes
-   the treatment + motion plug-in pattern).
-4. **Phase 4 - Cunty Leopard** (SVG tiles, trims, gold, layered FAB).
-5. **Phase 5 - Trashy 2000s** (velour noise, bedazzle, 14-gem FAB, stars).
+1. **Phase 1 - foundation. DONE (2026-10-08).** `theme.ts` now has an expanded `Palette` (universal
+   tokens: text x3, onPrimary, divider, cardBorder, grid lines x3 + gridScrim, input bg/border/
+   placeholder, switchTrack/switchNoBg, segmentActive bg/text, danger set x4) + optional `Theme`
+   fields (`fontDisplay`, `treatments`, `onSheet`, `decor: ThemeDecor`) declared but mostly unused;
+   `applyTheme` also sets `--app-font-display`. All four themes carry their real spec palettes + fonts.
+   Fonts are **Fontsource** packages (Figtree/Jost/Bodoni Moda+italic/Nunito/Yellowtail/Quicksand),
+   imported in `main.tsx`; `vite.config.ts` `workbox.globPatterns` precaches the latin woff2 subsets
+   for offline. Verified: tsc clean, 26 tests green, build+SW OK. Treatments/onSheet/decor NOT yet
+   populated or wired - that's Phases 2-6. Hard-coded `neutral-*` literals in components untouched,
+   so 11:11 (dark) still has dark-on-dark text until Phase 2.
+2. **Phase 2 - themify the neutrals. DONE (2026-10-08).** The semantic colours are registered as
+   **Tailwind `@theme` tokens** in `index.css` (same pattern as `primary`), so components use
+   utilities like `text-text-primary`, `text-text-secondary`/`-muted`, `border-divider`,
+   `border-card-border`, `border-grid-line`/`-half`, `border-grid-col`, `bg-input-bg`,
+   `border-input-border`, `text-on-primary`, `text-segment-active-text`, `bg-danger-bg`/
+   `text-danger-text`/`border-danger-border` - all referencing the runtime `--color-*` vars, so theme
+   switching drives them. Placeholder colour via a global `::placeholder` rule. The hard-coded
+   `neutral-*`/`white`/`red-*` literals were swapped across every component/view. The Week/Day +
+   today + Save + FAB now use `segment-active-*` / `on-primary` (e.g. default's black segment thumb,
+   black-on-green actions). **On-sheet override is wired:** `.sheet-scope` (on EntryForm/
+   EntryDetailSheet/DateTimeDialog + the future-date modal) remaps text/pill/input/switch vars to
+   `*-sheet` values; `applyTheme` always emits those (onSheet override or base), and 11:11's `onSheet`
+   is populated - so 11:11's light sheets now read correctly over its dark app. Verified: tsc clean,
+   26 tests, build OK, and the new utilities confirmed present in the compiled CSS. Intentionally
+   left for per-theme phases: modal scrims (`bg-black/40`), the destructive-red Delete button, and the
+   Settings swatch ring (`black/10`).
+   - **Phase 2.5 - flip-switch (`YesNoSwitch`) themed. DONE (2026-10-08).** Fully token-driven:
+     track=`switchTrack`, No thumb=`switchNoBg`, Yes thumb=passed accent, inactive label=`textMuted`.
+     Added tokens `switchNoText` + `triggerSwitchText` for thumb-label contrast (etas/2000s white, leopard
+     cream, 11:11 navy / dark-rose); `switchNoText` is on-sheet-scoped. `YesNoSwitch` gained an `accentText`
+     prop; the three trigger-switch callers pass `triggerSwitchText`. (Week/Day segment was themed in Phase
+     2; the Triggers sub-tabs keep their symptom-coloured look by choice - converting them to a sliding
+     segmented control is an open design option, not done.)
+3. **Phase 3 - EtasEats slice / treatment + motion pattern. DONE (2026-10-08).** Added string-valued
+   treatment tokens `cardShadow`/`sheetShadow`/`fabShadow`/`scrim` to `Palette` (mapped to `--shadow-*`
+   / `--color-scrim`, read inline via `COLORS`, NOT in `@theme`; `:root` fallbacks in index.css for
+   pre-paint) and **populated all four themes** with their spec shadow/scrim values (so later phases
+   inherit them). Wired: Triggers cards -> `cardShadow`; the two sheets + the dialogs -> `sheetShadow`;
+   FAB -> `fabShadow`; all overlays -> `scrim` (replacing `bg-black/40`). Added a grabber pill to both
+   sheets. Motion primitives live in index.css (all transform/opacity): `.tap` (scale .96) + `.tap-fab`
+   (scale .92) press feedback, `sheet-enter` slide-up, `scrim-fade`, and a global `prefers-reduced-motion`
+   guard. `.tap` applied to FAB, filter chips, form pills, nav items, and the primary/confirm buttons.
+   Verified: tsc clean, 26 tests, build OK, motion CSS confirmed bundled. Deferred (optional, flow-
+   touching): the "✓ Saved" confirmation + new-chip-into-slot animation, a sheet *exit* animation, and
+   the spec's inset-ring input focus (we keep the existing per-type accent focus border).
+4. **Phase 4 - Cunty Leopard** (in sub-steps):
+   - **4a - foundation. DONE (2026-10-08).** Stripped C2PA metadata from the 3 tiles -> `src/assets/
+     leopard-{soft,bold,dark}.svg`, imported `?url` in `theme.ts`. Added **treatment-var plumbing**:
+     `Theme.treatments` keys are literal CSS var names; `applyTheme` clears `ALL_TREATMENT_VARS` then sets
+     the active theme's, and sets `--app-font-display-style`. Leopard now defines `treatments`
+     (`--app-bg-layer`, `--leopard-bold`, `--leopard-bold-sm`, `--leopard-dark`, `--gold-metal`,
+     `--gold-line`), `decor` (patternedBg/fabTreatment:'leopard'/leopardTrim/sheetBand/goldSave/navPrint),
+     and `fontDisplayStyle:'italic'`. `App.tsx` renders a fixed `z-index:-1` layer painting
+     `var(--app-bg-layer, transparent)` (soft print for leopard; flat body `appBg` for others).
+     `CalendarGrid` scroll area now has the `gridScrim` background (mutes print behind the grid;
+     transparent on etas/11:11). A `.font-display` class (family + `--app-font-display-style`) is applied
+     to the prominent titles (month label, sheet titles, entry name, symptom card title, Settings h1, and
+     the per-theme theme-card label) - this also lights up 2000s' Yellowtail headings. Verified: tsc, 26
+     tests, build (3 tiles emitted + precached). NOTE: display headings use the display FONT at existing
+     sizes; per-theme glam SIZING is a later polish.
+   - **4b - trims + sheet band. DONE (2026-10-08).** Added a **theme context** (`lib/theme-context.tsx`:
+     `ThemeProvider`/`useTheme`/`useDecor`) so structural decor can render conditionally + re-render on
+     theme switch; `main.tsx` wraps `<App>` in it and `SettingsView` now drives the theme through it
+     (colours still flow via CSS vars). New `components/decor.tsx`: `<PrintTrim height>` (leopard-bold
+     strip + gold hairline, null unless `decor.leopardTrim`) and `<SheetGrabber>` (16px leopard band with
+     grabber + gold hairline when `decor.sheetBand`, else the plain grabber pill). Wired: a 5px `PrintTrim`
+     between the calendar header and grid; a 6px strip across the top of each Last-Symptoms card (card
+     restructured to `overflow-hidden` + inner `p-3`); `SheetGrabber` in both sheets. Verified: tsc, 26
+     tests, build. (Settings/Triggers cards other than Last-Symptoms don't carry a strip yet; the special
+     Settings theme-card is 4d.)
+   - **4c - FAB + Save + nav. DONE (2026-10-08).** New `components/Fab.tsx` (theme-aware): plain green
+     circle by default, leopard renders the layered treatment (gold-metal ring -> `--leopard-bold-sm`
+     disc -> 30px espresso core with gold `+`); replaces the inline FAB in CalendarView. Gold Save via CSS
+     vars: `--save-bg`/`--save-text` default to the theme's primary (index.css `:root`), leopard overrides
+     to `var(--gold-metal)` / `#2A1810` (treatments); the three Save/confirm buttons read those vars.
+     `BottomNav` uses `useDecor`: on leopard the bar paints `--leopard-dark` print with a `--gold-line`
+     top hairline and a gold tab-mark under the selected tab; other themes keep flat `navBg` + divider.
+     Also moved the calendar `PrintTrim` INTO `CalendarGrid` (between the date headers and the grid, i.e.
+     directly above the grid under the dates) per owner feedback. Verified: tsc, 26 tests, build.
+   - **4d - motion + theme-card. DONE (2026-10-08). Phase 4 (Cunty Leopard) COMPLETE.** Added leopard
+     motion in index.css behind `cl-*` classes (neutralized by the reduced-motion guard): `cl-save` (M1
+     gold sheen on Save while a sheet is open; added in EntryForm when `decor.goldSave`), `cl-fab` (M2 gold
+     halo pulsing out of the FAB 3x on mount; on the leopard Fab), `cl-band` (M3 sheen across the sheet
+     leopard band; on SheetGrabber's band), and `cl-theme-card` (slow 6s sheen on the active leopard
+     Settings card). Implemented T8: the active leopard theme-card gets print fill (`--leopard-bold-sm`),
+     a gold border, its name on an espresso plate in Bodoni italic gold, and a gold check (only when
+     leopard is active, since its treatment vars are set then). Verified: tsc, 26 tests, build, cl-*
+     classes confirmed in CSS. NOTE: spec M4 (toggle overshoot easing) skipped as minor; gradient border
+     on the theme card approximated with a solid gold `#B8862C`. The Save `cl-save` shimmer only runs when
+     the button is enabled AND the sheet isn't being dragged - the infinite shimmer is a composited layer
+     that otherwise desyncs the leopard sheet band during the drag-to-dismiss on iOS (the detail sheet has
+     no Save, hence was unaffected). FOLLOW-UP: on the iOS simulator the band still desynced, so
+     EntryForm's sheet was split into an **outer wrapper that owns the drag `transform`** and an **inner
+     element that owns the scroll** (the classic iOS fix for transforming a scroll container). EntryDetailSheet
+     was left single-element (its content doesn't scroll, so it's fine); apply the same split there if its
+     content ever grows.
+5. **Phase 5 - Trashy 2000s** (in sub-steps):
+   - **5a - surfaces. DONE (2026-10-08).** 2000s `treatments`: `--app-bg-layer` = velour (feTurbulence noise
+     + star tile + diagonal sheen + pink gradient, one `background` shorthand of inline-SVG data-URIs),
+     `--tt-holo` gradient, and a bedazzle `--save-bg` (white stud radial tile over the pink gradient) +
+     white `--save-text`. `decor: { patternedBg, sheetBandHolo }`. `SheetGrabber` gained a holo-band branch
+     (22px `--tt-holo` band + dark grabber, class `tt-holo-band` with the `tt-sheen` background-position
+     drift). Grid scrim/lines already themed from earlier phases. Verified: tsc, 26 tests, build.
+   - **5b - gem FAB + velour nav. DONE (2026-10-08).** `Fab.tsx` gained a `fabTreatment: 'gems'` branch:
+     a 74px hit box with a 62px radial-pink gem FAB centred and 14 rhinestones on a 34px ring (computed
+     positions). `BottomNav` handles `decor.navVelour`: nav paints `--nav-velour` (magenta noise + pink
+     gradient) and the selected tab gets a translucent glass pill. 2000s decor now also sets
+     `fabTreatment:'gems'` + `navVelour`. Verified: tsc, 26 tests, build.
+   - **5c - stars + motion + theme-card. DONE (2026-10-08). Phase 5 (Trashy 2000s) COMPLETE.** FAB shimmer
+     (`tt-fab-shimmer` white band sweeping the gem FAB every 6s); a cream Y2K star that pops in on the
+     selected nav tab (`tt-nav-star`, inline star SVG); and the 2000s active Settings theme-card gets a
+     drifting holographic fill (`tt-holo-band` + `backgroundImage: var(--tt-holo)`) with a pink border (its
+     check is already pink via primaryAction, label stays Yellowtail). All behind the reduced-motion guard.
+     Verified: tsc, 26 tests, build, classes confirmed in CSS. NOTE (optional, not done): today-marker star
+     twinkle, Trigger-List gold-star bullets, and the Settings checkmark-as-star - deferred as granular.
 6. **Phase 6 - 11:11** (most structurally complex: dark theme, on-sheet var overrides, wave accents,
    heart-clock SVG + 🩵 emoji marker, frosted `backdrop-filter` panels, always-on FAB ripple).
 Each phase is small and independently verifiable on-device.

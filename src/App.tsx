@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { BottomNav, type Tab } from './components/BottomNav'
-import { COLORS } from './lib/theme'
 import { AboutView } from './views/AboutView'
 import { CalendarView } from './views/CalendarView'
 import { SettingsView } from './views/SettingsView'
@@ -30,7 +29,16 @@ function App() {
   }
 
   return (
-    <div className="flex h-full flex-col" style={{ backgroundColor: COLORS.appBg }}>
+    <div className="flex h-full flex-col">
+      {/* Fixed app-background layer. Flat themes leave --app-bg-layer unset, so the
+          body's app-bg colour shows; patterned themes (e.g. leopard) paint a print
+          here, behind all content. iOS ignores background-attachment:fixed, hence a
+          real fixed element. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0"
+        style={{ zIndex: -1, background: 'var(--app-bg-layer, transparent)' }}
+      />
       {/* min-h-0 lets the active view own its own vertical scroll. */}
       <main className="min-h-0 flex-1 overflow-hidden">
         {tab === 'calendar' && <CalendarView />}

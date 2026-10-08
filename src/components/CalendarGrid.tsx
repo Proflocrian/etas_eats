@@ -12,7 +12,8 @@ import {
   weekdayShort,
 } from '../lib/calendar'
 import { entryTitle } from '../lib/entryTypes'
-import { ENTRY_TYPE_META } from '../lib/theme'
+import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
+import { PrintTrim } from './decor'
 
 const ROW_H = 28 // px per 30-min slot
 const HOUR_H = ROW_H * 2
@@ -85,7 +86,7 @@ export function CalendarGrid({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Day header - aligned to the grid columns below via the same gutter. */}
-      <div className="flex shrink-0 border-b border-neutral-200">
+      <div className="flex shrink-0 border-b border-divider">
         <div className="shrink-0" style={{ width: GUTTER }} />
         {days.map((d) => {
           const isToday = isSameDay(d, today)
@@ -94,12 +95,12 @@ export function CalendarGrid({
               key={toDateKey(d)}
               className="flex flex-1 flex-col items-center py-1"
             >
-              <span className="text-[11px] font-medium text-neutral-500">
+              <span className="text-[11px] font-medium text-text-muted">
                 {weekdayShort(d)}
               </span>
               <span
                 className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${
-                  isToday ? 'bg-primary text-white' : 'text-neutral-800'
+                  isToday ? 'bg-primary text-on-primary' : 'text-text-primary'
                 }`}
               >
                 {dayNumber(d)}
@@ -109,11 +110,14 @@ export function CalendarGrid({
         })}
       </div>
 
+      {/* Leopard trim (themes that opt in) - directly above the grid, under the dates. */}
+      <PrintTrim height={5} />
+
       {/* Scrollable time grid (vertical only). */}
       <div
         ref={scrollRef}
         className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
-        style={{ touchAction: 'pan-y' }}
+        style={{ touchAction: 'pan-y', backgroundColor: COLORS.gridScrim }}
         onScroll={(e) => {
           savedScrollTop = e.currentTarget.scrollTop
         }}
@@ -134,7 +138,7 @@ export function CalendarGrid({
             {Array.from({ length: 24 }, (_, h) => (
               <div
                 key={h}
-                className="absolute right-1 text-right text-[11px] text-neutral-400"
+                className="absolute right-1 text-right text-[11px] text-text-muted"
                 style={{ top: h * HOUR_H - 6 }}
               >
                 {h > 0 ? `${String(h).padStart(2, '0')}:00` : ''}
@@ -157,7 +161,7 @@ export function CalendarGrid({
             }
 
             return (
-              <div key={key} className="relative flex-1 border-l border-neutral-200">
+              <div key={key} className="relative flex-1 border-l border-grid-col">
                 {/* Tappable empty slots + grid lines. */}
                 {slots.map((t, i) => (
                   <button
@@ -166,7 +170,7 @@ export function CalendarGrid({
                     onClick={() => onSlotTap(key, t)}
                     aria-label={`${weekdayShort(d)} ${dayNumber(d)}, ${slotRangeLabel(t)}`}
                     className={`block w-full border-t ${
-                      i % 2 === 0 ? 'border-neutral-200' : 'border-neutral-100'
+                      i % 2 === 0 ? 'border-grid-line' : 'border-grid-line-half'
                     }`}
                     style={{ height: ROW_H }}
                   />

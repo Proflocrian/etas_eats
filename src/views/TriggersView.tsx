@@ -26,7 +26,7 @@ export function TriggersView() {
       }}
     >
       <div className="shrink-0 px-3 py-2">
-        <div className="flex rounded-lg border border-neutral-300 p-0.5 text-sm">
+        <div className="flex rounded-lg border border-input-border p-0.5 text-sm">
           {TABS.map(({ id, emoji, label }) => {
             const isActive = tab === id
             return (
@@ -35,7 +35,7 @@ export function TriggersView() {
                 type="button"
                 onClick={() => setTab(id)}
                 className={`flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 ${
-                  isActive ? 'font-semibold' : 'text-neutral-600'
+                  isActive ? 'font-semibold' : 'text-text-secondary'
                 }`}
                 style={
                   isActive

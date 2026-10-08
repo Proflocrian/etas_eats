@@ -4,6 +4,7 @@ import { updateEntry } from '../db/entries'
 import { formatLongDate, parseDateKey, slotRangeLabel } from '../lib/calendar'
 import { entryTitle } from '../lib/entryTypes'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
+import { SheetGrabber } from './decor'
 import { YesNoSwitch } from './YesNoSwitch'
 
 // Read-only view of a Food/Activity entry. The only editable thing is the
@@ -67,33 +68,38 @@ export function EntryDetailSheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40"
+      className="scrim-fade fixed inset-0 z-50 flex flex-col justify-end"
       onClick={onClose}
+      style={{ backgroundColor: COLORS.scrim }}
     >
       <div
         ref={sheetRef}
-        className="max-h-[92%] overflow-y-auto overscroll-contain rounded-t-2xl"
+        className="sheet-scope sheet-enter max-h-[92%] overflow-y-auto overscroll-contain rounded-t-2xl"
         onClick={(e) => e.stopPropagation()}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         style={{
           backgroundColor: COLORS.sheetBg,
+          boxShadow: COLORS.sheetShadow,
           paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
           transform: dragY ? `translateY(${dragY}px)` : undefined,
           transition: dragging ? 'none' : 'transform 0.2s ease-out',
         }}
       >
+        <SheetGrabber />
         <div className="flex items-center justify-between px-4 py-3">
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-xl text-neutral-500 active:bg-neutral-100"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-xl text-text-muted active:bg-divider"
           >
             ✕
           </button>
-          <span className="text-sm font-semibold text-neutral-700">Entry details</span>
+          <span className="font-display text-sm font-semibold text-text-secondary">
+            Entry details
+          </span>
           <span className="w-9" />
         </div>
 
@@ -103,7 +109,7 @@ export function EntryDetailSheet({
               className="h-3 w-3 shrink-0 rounded-full"
               style={{ backgroundColor: meta.border }}
             />
-            <span className="text-lg font-semibold text-neutral-800">
+            <span className="font-display text-lg font-semibold text-text-primary">
               {entryTitle(entry)}
             </span>
           </div>
@@ -111,20 +117,21 @@ export function EntryDetailSheet({
           <dl className="flex flex-col gap-2">
             {rows.map((r) => (
               <div key={r.label} className="flex gap-3">
-                <dt className="w-24 shrink-0 text-sm text-neutral-400">{r.label}</dt>
-                <dd className="text-sm text-neutral-800">{r.value}</dd>
+                <dt className="w-24 shrink-0 text-sm text-text-muted">{r.label}</dt>
+                <dd className="text-sm text-text-primary">{r.value}</dd>
               </div>
             ))}
           </dl>
 
-          <div className="flex items-center justify-between border-t border-neutral-100 pt-3">
-            <span className="text-sm font-medium text-neutral-600">
+          <div className="flex items-center justify-between border-t border-divider pt-3">
+            <span className="text-sm font-medium text-text-secondary">
               Possible Trigger?
             </span>
             <YesNoSwitch
               value={possibleTrigger}
               onChange={(v) => toggle(v)}
               accentColor={COLORS.triggerPillBorder}
+              accentText={COLORS.triggerSwitchText}
             />
           </div>
         </div>

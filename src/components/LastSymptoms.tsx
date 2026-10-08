@@ -4,6 +4,7 @@ import { getEntriesBefore, getRecentSymptoms, updateEntry } from '../db/entries'
 import { entryDateTime, formatGap, formatLongDate, parseDateKey } from '../lib/calendar'
 import { entryTitle } from '../lib/entryTypes'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
+import { PrintTrim } from './decor'
 import { EntryDetailSheet } from './EntryDetailSheet'
 import { YesNoSwitch } from './YesNoSwitch'
 
@@ -48,7 +49,7 @@ export function LastSymptoms() {
 
   if (groups.length === 0) {
     return (
-      <p className="px-6 py-10 text-center text-sm text-neutral-400">
+      <p className="px-6 py-10 text-center text-sm text-text-muted">
         No symptoms logged yet. Add one on the calendar and it'll show up here.
       </p>
     )
@@ -62,31 +63,38 @@ export function LastSymptoms() {
         return (
           <div
             key={symptom.id}
-            className="rounded-xl border border-neutral-200 bg-white p-3"
+            className="overflow-hidden rounded-xl border"
+            style={{
+              backgroundColor: COLORS.settingsButtonBg,
+              borderColor: COLORS.cardBorder,
+              boxShadow: COLORS.cardShadow,
+            }}
           >
+            <PrintTrim height={6} />
+            <div className="p-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <span
-                className="font-semibold"
+                className="font-display font-semibold"
                 style={{ color: ENTRY_TYPE_META.symptom.border }}
               >
                 {entryTitle(symptom)}
               </span>
-              <span className="shrink-0 text-xs text-neutral-500">
+              <span className="shrink-0 text-xs text-text-muted">
                 {formatLongDate(parseDateKey(symptom.date))} · {symptom.time}
               </span>
             </div>
 
             {priors.length === 0 ? (
-              <p className="pl-1 text-sm text-neutral-400">
+              <p className="pl-1 text-sm text-text-muted">
                 Nothing logged before this.
               </p>
             ) : (
               <>
                 <div className="flex items-center justify-between px-1 pb-1">
-                  <span className="text-xs font-medium text-neutral-400">
+                  <span className="text-xs font-medium text-text-muted">
                     Before this
                   </span>
-                  <span className="text-xs font-medium text-neutral-400">
+                  <span className="text-xs font-medium text-text-muted">
                     Possible trigger
                   </span>
                 </div>
@@ -98,21 +106,21 @@ export function LastSymptoms() {
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center gap-2 border-t border-neutral-100 py-2"
+                      className="flex items-center gap-2 border-t border-divider py-2"
                     >
                       <button
                         type="button"
                         onClick={() => setSelected(p)}
                         className="flex min-w-0 flex-1 items-center gap-2 text-left active:opacity-70"
                       >
-                        <span className="w-24 shrink-0 text-xs text-neutral-400">
+                        <span className="w-24 shrink-0 text-xs text-text-muted">
                           {formatGap(mins)}
                         </span>
                         <span
                           className="h-2 w-2 shrink-0 rounded-full"
                           style={{ backgroundColor: meta.border }}
                         />
-                        <span className="min-w-0 flex-1 truncate text-sm text-neutral-800">
+                        <span className="min-w-0 flex-1 truncate text-sm text-text-primary">
                           {entryTitle(p)}
                         </span>
                       </button>
@@ -121,12 +129,14 @@ export function LastSymptoms() {
                         onChange={(v) => setTrigger(p, v)}
                         size="sm"
                         accentColor={COLORS.triggerPillBorder}
+                        accentText={COLORS.triggerSwitchText}
                       />
                     </div>
                   )
                 })}
               </>
             )}
+            </div>
           </div>
         )
       })}

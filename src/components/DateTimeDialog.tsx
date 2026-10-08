@@ -8,7 +8,7 @@ import {
 import { COLORS } from '../lib/theme'
 
 const inputClass =
-  'w-full rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-800 outline-none focus:border-primary'
+  'w-full rounded-lg border border-input-border bg-input-bg px-3 py-2 text-base text-text-primary outline-none focus:border-primary'
 
 // A small centered dialog that asks only for a date + 30-min slot.
 export function DateTimeDialog({
@@ -31,15 +31,16 @@ export function DateTimeDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4"
+      className="scrim-fade fixed inset-0 z-[60] flex items-center justify-center px-4"
       onClick={onCancel}
+      style={{ backgroundColor: COLORS.scrim }}
     >
       <div
-        className="w-full max-w-xs rounded-2xl p-4"
+        className="sheet-scope w-full max-w-xs rounded-2xl p-4"
         onClick={(e) => e.stopPropagation()}
-        style={{ backgroundColor: COLORS.sheetBg }}
+        style={{ backgroundColor: COLORS.sheetBg, boxShadow: COLORS.sheetShadow }}
       >
-        <h2 className="mb-3 text-base font-semibold text-neutral-800">{title}</h2>
+        <h2 className="mb-3 text-base font-semibold text-text-primary">{title}</h2>
 
         <div className="flex flex-col gap-2">
           <input
@@ -69,14 +70,15 @@ export function DateTimeDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg px-4 py-1.5 text-sm text-neutral-600"
+            className="rounded-lg px-4 py-1.5 text-sm text-text-secondary"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={() => onConfirm(dateKey, time)}
-            className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white"
+            className="tap rounded-lg px-4 py-1.5 text-sm font-semibold"
+            style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
           >
             {confirmLabel}
           </button>

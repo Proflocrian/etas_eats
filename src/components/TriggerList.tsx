@@ -20,7 +20,7 @@ export function TriggerList() {
 
   if (items.length === 0) {
     return (
-      <p className="px-6 py-10 text-center text-sm text-neutral-400">
+      <p className="px-6 py-10 text-center text-sm text-text-muted">
         No possible triggers flagged yet. Tick some under Last Symptoms.
       </p>
     )
@@ -36,12 +36,12 @@ export function TriggerList() {
               onClick={() => setSelected(e)}
               className="flex w-full items-center gap-2 py-2 text-left active:opacity-70"
             >
-              <span className="text-neutral-400">•</span>
+              <span className="text-text-muted">•</span>
               <span
                 className="h-2 w-2 shrink-0 rounded-full"
                 style={{ backgroundColor: ENTRY_TYPE_META[e.entryType].border }}
               />
-              <span className="flex-1 truncate text-sm text-neutral-800">
+              <span className="flex-1 truncate text-sm text-text-primary">
                 {entryTitle(e)}
               </span>
             </button>
