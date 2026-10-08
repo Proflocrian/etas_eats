@@ -42,6 +42,7 @@ export interface Palette {
   textMuted: string // meta / hour labels / "3h before"
   divider: string // hairlines, nav top border
   cardBorder: string // card / row borders
+  cardBg: string // content-card fill (Last Symptoms cards); white on etas vs grey rows
   gridLine: string // calendar hour lines
   gridLineHalf: string // calendar half-hour lines
   gridCol: string // calendar day-column dividers
@@ -96,6 +97,7 @@ const CSS_VARS: Record<keyof Palette, string> = {
   textMuted: '--color-text-muted',
   divider: '--color-divider',
   cardBorder: '--color-card-border',
+  cardBg: '--color-card-bg',
   gridLine: '--color-grid-line',
   gridLineHalf: '--color-grid-line-half',
   gridCol: '--color-grid-col',
@@ -134,20 +136,64 @@ export type ThemeId = 'etas-eats' | 'cunty-leopard' | 'trashy-2000s' | 'eleven-e
 // decorative overlays, special FAB, ...). Populated in later phases; a theme
 // that omits a flag gets the plain default. See handover.md.
 export interface ThemeDecor {
-  fabTreatment?: 'leopard' | 'gems' // non-default FAB rendering
+  fabTreatment?: 'leopard' | 'gems' | 'heart' // non-default FAB rendering
   patternedBg?: boolean // app background is a treatment layer, not a flat fill
   leopardTrim?: boolean // leopard print strips on calendar header + card tops
   sheetBand?: boolean // leopard print band at the top of sheets
   sheetBandHolo?: boolean // holographic band at the top of sheets (2000s)
+  y2kStars?: boolean // 2000s star motif: today marker, Trigger List bullets, Settings check
   goldSave?: boolean // gold-metal Save button (leopard)
   navPrint?: boolean // tone-on-tone print + gold tab mark on the nav (leopard)
   navVelour?: boolean // raspberry-velour nav + glass selected pill (2000s)
+  navHeartMark?: boolean // 🩵 tab mark on the selected nav tab (11:11)
+  bedazzleSave?: boolean // 2000s rhinestone Save: pink gradient + inset dashed ring + glow
+  bgSparkle?: boolean // 2000s slow drifting star glimmer over the background
   sheetWave?: boolean // 11:11 marbled-wave sheet background
   headerWave?: boolean // 11:11 faint wave strip under the status bar
   watermark?: boolean // 11:11 heart-clock watermark (Settings/About)
   elevenRow?: boolean // 11:11 always-on heart emoji at the 11:11 gutter point
+  triggersEleven?: boolean // 11:11 fixed "11:11" watermark behind the Triggers screen
   fabRipple?: boolean // 11:11 always-on ~11s FAB ripple
 }
+
+// 11:11 marbled wave: ~34 sine strokes denim -> powder -> cream plus white
+// hairlines on an ice ground, as one 480x360 inline-SVG tile (~3KB, no raster).
+// Built once at module load; emitted as the `--wave-svg` treatment var. The wave
+// period divides the tile width so it tiles horizontally without a seam.
+function makeWave(): string {
+  const W = 480,
+    H = 360,
+    n = 34
+  const cols = ['#1F4E86', '#2F67A3', '#5C8FC4', '#8DB4DA', '#B9D3EA', '#DCE8F2', '#F1F0EA']
+  const line = (y0: number, i: number, amp: number) => {
+    let d = ''
+    for (let x = 0; x <= W; x += 12) {
+      const y =
+        y0 +
+        amp * Math.sin((2 * Math.PI * x) / (W / 2) + i * 0.28) +
+        5 * Math.sin((2 * Math.PI * x * 3) / W + i * 0.5)
+      d += (x ? 'L' : 'M') + x + ' ' + y.toFixed(1)
+    }
+    return d
+  }
+  let p = ''
+  for (let i = 0; i < n; i++) {
+    const y0 = -20 + (i * (H + 40)) / n
+    const band = Math.sin(i * 0.42) + 0.6 * Math.sin(i * 0.17 + 1)
+    const ci = Math.max(0, Math.min(6, Math.round(((band + 1.6) / 3.2) * 6)))
+    const w = (4 + 7 * Math.abs(Math.sin(i * 0.9))).toFixed(1)
+    const o = (0.55 + 0.4 * Math.abs(Math.cos(i * 0.6))).toFixed(2)
+    p += `<path d="${line(y0, i, 14)}" stroke="${cols[ci]}" stroke-width="${w}" stroke-opacity="${o}" fill="none"/>`
+  }
+  for (let i = 0; i < n * 2; i++) {
+    const y0 = -20 + (i * (H + 40)) / (n * 2) + 3
+    p += `<path d="${line(y0, i / 2, 14)}" stroke="#fff" stroke-width="0.8" stroke-opacity="0.35" fill="none"/>`
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="#E9EEF1"/>${p}</svg>`
+  return 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")'
+}
+
+const WAVE_SVG = makeWave()
 
 export interface Theme {
   label: string
@@ -194,6 +240,7 @@ export const THEMES: Record<ThemeId, Theme> = {
       textMuted: '#6B6B6B',
       divider: '#EEEEEE',
       cardBorder: '#EEEEEE',
+      cardBg: '#FFFFFF',
       gridLine: '#EBEBEB',
       gridLineHalf: '#F6F6F6',
       gridCol: '#F2F2F2',
@@ -250,6 +297,7 @@ export const THEMES: Record<ThemeId, Theme> = {
       textMuted: '#8A7058',
       divider: '#E3CCA6',
       cardBorder: '#E3CCA6',
+      cardBg: '#FCF5E8',
       gridLine: '#E2CDA8',
       gridLineHalf: '#EEDFC5',
       gridCol: '#E8D6B8',
@@ -327,6 +375,7 @@ export const THEMES: Record<ThemeId, Theme> = {
       textMuted: '#8A4A6E',
       divider: '#F6B3D3',
       cardBorder: '#F6B3D3',
+      cardBg: '#FFFFFF',
       gridLine: '#F2A6CA',
       gridLineHalf: '#F9D2E4',
       gridCol: '#F6C3DB',
@@ -354,6 +403,9 @@ export const THEMES: Record<ThemeId, Theme> = {
       sheetBandHolo: true,
       fabTreatment: 'gems',
       navVelour: true,
+      y2kStars: true,
+      bedazzleSave: true,
+      bgSparkle: true,
     },
     treatments: {
       // Raspberry-velour nav: magenta-tinted noise over a pink gradient.
@@ -363,9 +415,9 @@ export const THEMES: Record<ThemeId, Theme> = {
       '--app-bg-layer': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .78 0 0 0 0 0 0 0 0 0 .38 0 0 0 .28 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E") 0 0/140px 140px, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' fill='%23fff'%3E%3Cpath d='M30 14c1 8 4 11 12 12-8 1-11 4-12 12-1-8-4-11-12-12 8-1 11-4 12-12z' opacity='.85'/%3E%3Cpath d='M128 92c.6 5 2.5 7 7.5 7.5-5 .6-7 2.5-7.5 7.5-.6-5-2.5-7-7.5-7.5 5-.6 7-2.5 7.5-7.5z' opacity='.7'/%3E%3Ccircle cx='90' cy='40' r='1.6'/%3E%3Ccircle cx='50' cy='140' r='1.2'/%3E%3Ccircle cx='160' cy='160' r='1.4'/%3E%3C/svg%3E") 0 0/180px 180px, linear-gradient(115deg, transparent 20%, rgba(255,255,255,.4) 42%, transparent 62%), linear-gradient(170deg, #FFC2E0, #FFDCEC 45%, #FFBEDD), #FFD3E8`,
       '--tt-holo':
         'linear-gradient(110deg, #FFC4E6, #C8EEFF 25%, #E2D3FF 50%, #FFF2B8 72%, #FFC4E6)',
-      // Rhinestone Save: a white stud radial tile over the pink gradient.
-      '--save-bg':
-        'radial-gradient(circle at 3.5px 3.5px, #fff 0 .9px, #FFC7E3 1.3px 2.1px, transparent 2.5px) 0 0/7px 7px, linear-gradient(135deg, #FF5FB0, #E0007A)',
+      // Rhinestone Save: a clean hot-pink gradient; the dashed ring + glow come
+      // from the .tt-save class (decor.bedazzleSave).
+      '--save-bg': 'linear-gradient(135deg, #FF5FB0, #E0007A)',
       '--save-text': '#FFFFFF',
     },
   },
@@ -401,6 +453,7 @@ export const THEMES: Record<ThemeId, Theme> = {
       textMuted: '#A9C3DD',
       divider: '#3E6994',
       cardBorder: '#3E6994',
+      cardBg: '#2C5986',
       gridLine: '#44709C',
       gridLineHalf: '#305C88',
       gridCol: '#34618D',
@@ -435,6 +488,25 @@ export const THEMES: Record<ThemeId, Theme> = {
       switchTrack: '#E6EEF5',
       switchNoBg: '#16324F',
       switchNoText: '#FFFFFF',
+    },
+    decor: {
+      patternedBg: true, // denim gradient surface (treatment #1)
+      sheetWave: true,
+      headerWave: true,
+      watermark: true,
+      elevenRow: true,
+      triggersEleven: true,
+      fabRipple: true,
+      fabTreatment: 'heart',
+      navHeartMark: true,
+    },
+    treatments: {
+      // Treatment #1: a plain vertical denim gradient (no pattern), painted on
+      // the fixed app-bg layer so the grid sits on solid denim.
+      '--app-bg-layer': 'linear-gradient(180deg, #2A5986 0%, #23507D 34%, #1F4873 100%)',
+      // Treatment #2: the marbled wave tile (used by WaveAccent on sheets, the
+      // header strip and the 11:11 theme card).
+      '--wave-svg': WAVE_SVG,
     },
   },
 }

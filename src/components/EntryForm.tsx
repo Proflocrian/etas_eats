@@ -10,7 +10,7 @@ import {
 } from '../lib/calendar'
 import { useDecor } from '../lib/theme-context'
 import { DateTimeDialog } from './DateTimeDialog'
-import { SheetGrabber } from './decor'
+import { SheetGrabber, Star, WaveAccent } from './decor'
 import { YesNoSwitch } from './YesNoSwitch'
 import {
   ACTIVITY_PLACEHOLDERS,
@@ -61,7 +61,8 @@ function Pill({
 
 const inputClass =
   'w-full rounded-lg border border-input-border bg-input-bg px-3 py-2 text-base text-text-primary outline-none focus:border-[var(--field-accent)]'
-const labelClass = 'mb-1 block text-sm font-medium text-text-secondary'
+const labelClass = 'mb-1 block text-sm font-bold text-text-primary'
+const optionalClass = 'font-normal text-text-muted'
 
 export function EntryForm({
   entry,
@@ -235,7 +236,7 @@ export function EntryForm({
           Keeping them separate avoids an iOS compositing desync where transforming a
           scroll container per-frame makes child layers (the leopard band) drift. */}
       <div
-        className="sheet-enter flex max-h-[67%] flex-col overflow-hidden rounded-t-2xl"
+        className="sheet-enter relative flex max-h-[67%] flex-col overflow-hidden rounded-t-2xl"
         onClick={(e) => e.stopPropagation()}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -247,24 +248,43 @@ export function EntryForm({
           transition: dragging ? 'none' : 'transform 0.2s ease-out',
         }}
       >
+        {/* 11:11: the full drifting wave + a gradient scrim behind the content, and
+            the grabber/heart band sits on the wave above the frosted panel. */}
+        {decor.sheetWave && (
+          <>
+            <WaveAccent />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  'linear-gradient(180deg, rgba(30,70,112,.05), rgba(27,63,100,.35))',
+              }}
+            />
+          </>
+        )}
+        {/* Grabber/band sits OUTSIDE the scroll container so its animation doesn't
+            desync from the drag transform on iOS (the inner element owns the scroll). */}
+        <SheetGrabber />
         <div
           ref={sheetRef}
-          className="sheet-scope min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          className={`sheet-scope min-h-0 flex-1 overflow-y-auto overscroll-contain ${
+            decor.sheetWave ? 'tt-sheet-panel relative mx-3 mb-[42px] rounded-[22px]' : ''
+          }`}
           style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}
         >
-          <SheetGrabber />
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3">
           <button
             type="button"
             onClick={onClose}
             aria-label="Cancel"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-xl text-text-muted active:bg-divider"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-input-bg text-xl text-text-muted active:opacity-70"
           >
             ✕
           </button>
-          <span className="font-display text-sm font-semibold text-text-secondary">
-            {isEdit ? 'Edit entry' : 'New entry'}
+          <span className="font-display text-base font-bold text-text-primary">
+            {isEdit ? 'Edit Entry' : 'New Entry'}
           </span>
           <button
             type="button"
@@ -272,10 +292,15 @@ export function EntryForm({
             disabled={missingRequired || saving}
             className={`tap rounded-full px-5 py-1.5 text-sm font-semibold disabled:opacity-40 ${
               decor.goldSave && !missingRequired && !saving && !dragging ? 'cl-save' : ''
-            }`}
+            } ${decor.bedazzleSave && !missingRequired && !saving ? 'tt-save' : ''}`}
             style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
           >
             Save
+            {decor.bedazzleSave && !missingRequired && !saving && (
+              <span className="tt-twinkle absolute -bottom-1 -right-1" aria-hidden="true">
+                <Star size={12} color="#FFF3B0" />
+              </span>
+            )}
           </button>
         </div>
 
@@ -289,7 +314,7 @@ export function EntryForm({
           {/* Entry type: editable chips on create, read-only on edit. */}
           {isEdit ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-text-secondary">
+              <span className="text-sm font-bold text-text-primary">
                 Entry Type:
               </span>
               <span
@@ -369,7 +394,7 @@ export function EntryForm({
               </div>
               <div>
                 <label className={labelClass} htmlFor="ef-qty">
-                  Quantity (optional)
+                  Quantity <span className={optionalClass}>(optional)</span>
                 </label>
                 <input
                   id="ef-qty"
@@ -420,7 +445,7 @@ export function EntryForm({
           {/* Possible trigger (Food/Activity only) */}
           {(entryType === 'food' || entryType === 'activity') && (
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-text-secondary">
+              <span className="text-sm font-bold text-text-primary">
                 Possible Trigger?
               </span>
               <YesNoSwitch
@@ -435,7 +460,7 @@ export function EntryForm({
           {/* Notes (all types) */}
           <div>
             <label className={labelClass} htmlFor="ef-notes">
-              Notes (optional)
+              Notes <span className={optionalClass}>(optional)</span>
             </label>
             <textarea
               id="ef-notes"
@@ -453,6 +478,7 @@ export function EntryForm({
               type="button"
               onClick={() => setDuplicating(true)}
               className="self-start text-sm font-medium text-primary"
+              style={decor.sheetWave ? { color: '#2B6CB0' } : undefined}
             >
               Duplicate to another time
             </button>
@@ -486,6 +512,7 @@ export function EntryForm({
                 type="button"
                 onClick={() => setConfirmDelete(true)}
                 className="self-start text-sm font-medium text-danger-text"
+                style={decor.sheetWave ? { color: '#C53030' } : undefined}
               >
                 Delete entry
               </button>

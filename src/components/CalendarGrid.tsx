@@ -13,7 +13,8 @@ import {
 } from '../lib/calendar'
 import { entryTitle } from '../lib/entryTypes'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
-import { PrintTrim } from './decor'
+import { useDecor } from '../lib/theme-context'
+import { PrintTrim, Star } from './decor'
 
 const ROW_H = 28 // px per 30-min slot
 const HOUR_H = ROW_H * 2
@@ -43,6 +44,7 @@ export function CalendarGrid({
 }) {
   const slots = timeSlots()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const decor = useDecor()
   // Captured once on mount; used only to highlight today's column.
   const [today] = useState(() => new Date())
 
@@ -95,15 +97,26 @@ export function CalendarGrid({
               key={toDateKey(d)}
               className="flex flex-1 flex-col items-center py-1"
             >
-              <span className="text-[11px] font-medium text-text-muted">
+              <span
+                className="text-[11px] font-medium uppercase text-text-muted"
+                style={
+                  isToday && decor.elevenRow ? { color: COLORS.primaryAction } : undefined
+                }
+              >
                 {weekdayShort(d)}
               </span>
               <span
-                className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${
+                className={`relative mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${
                   isToday ? 'bg-primary text-on-primary' : 'text-text-primary'
                 }`}
               >
                 {dayNumber(d)}
+                {/* 2000s: a little star twinkles at the today marker's corner. */}
+                {isToday && decor.y2kStars && (
+                  <span className="tt-twinkle absolute -right-1 -top-1">
+                    <Star size={12} color="#FFFFFF" />
+                  </span>
+                )}
               </span>
             </div>
           )
@@ -144,11 +157,25 @@ export function CalendarGrid({
                 {h > 0 ? `${String(h).padStart(2, '0')}:00` : ''}
               </div>
             ))}
+            {/* 11:11: a 🩵 at the 11:11 point in the gutter, plus one at 23:11
+                (11:11pm). Always on, ~11 minutes below the hour line. */}
+            {decor.elevenRow &&
+              [11, 23].map((h) => (
+                <span
+                  key={h}
+                  className="absolute right-1 text-[11px] leading-none"
+                  style={{ top: h * HOUR_H + (11 / 60) * HOUR_H - 5 }}
+                  aria-hidden="true"
+                >
+                  🩵
+                </span>
+              ))}
           </div>
 
           {/* One column per day. */}
           {days.map((d) => {
             const key = toDateKey(d)
+            const isToday = isSameDay(d, today)
             const dayEntries = entriesByDate[key] ?? []
 
             // Group same-slot entries so they can sit side by side.
@@ -161,7 +188,15 @@ export function CalendarGrid({
             }
 
             return (
-              <div key={key} className="relative flex-1 border-l border-grid-col">
+              <div
+                key={key}
+                className="relative flex-1 border-l border-grid-col"
+                style={
+                  isToday && decor.elevenRow
+                    ? { backgroundColor: 'rgba(168,216,234,.07)' }
+                    : undefined
+                }
+              >
                 {/* Tappable empty slots + grid lines. */}
                 {slots.map((t, i) => (
                   <button
@@ -170,7 +205,9 @@ export function CalendarGrid({
                     onClick={() => onSlotTap(key, t)}
                     aria-label={`${weekdayShort(d)} ${dayNumber(d)}, ${slotRangeLabel(t)}`}
                     className={`block w-full border-t ${
-                      i % 2 === 0 ? 'border-grid-line' : 'border-grid-line-half'
+                      i % 2 === 0
+                        ? 'border-grid-line'
+                        : 'border-dashed border-grid-line-half'
                     }`}
                     style={{ height: ROW_H }}
                   />

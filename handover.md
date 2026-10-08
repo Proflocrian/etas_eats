@@ -383,8 +383,47 @@ The current system is flat hexes -> CSS vars -> `COLORS.x`. The specs go further
      check is already pink via primaryAction, label stays Yellowtail). All behind the reduced-motion guard.
      Verified: tsc, 26 tests, build, classes confirmed in CSS. NOTE (optional, not done): today-marker star
      twinkle, Trigger-List gold-star bullets, and the Settings checkmark-as-star - deferred as granular.
-6. **Phase 6 - 11:11** (most structurally complex: dark theme, on-sheet var overrides, wave accents,
-   heart-clock SVG + 🩵 emoji marker, frosted `backdrop-filter` panels, always-on FAB ripple).
+6. **Phase 6 - 11:11. DONE (2026-10-08). Phase 6 COMPLETE.** The dark denim theme is fully wired.
+   - **Tokens/foundation:** added the `triggersEleven` decor flag; `makeWave()` builds the marbled-wave
+     tile once at module load -> emitted as the `--wave-svg` treatment; `eleven-eleven` now carries its
+     `treatments` (`--app-bg-layer` = the denim gradient surface, `--wave-svg`) + `decor`
+     (patternedBg/sheetWave/headerWave/watermark/elevenRow/triggersEleven/fabRipple). Two new components in
+     `decor.tsx`: `<WaveAccent opacity mask duration />` (fills its positioned parent; reads `--wave-svg`,
+     drifts via `.tt-wave`) and `<HeartClock size stroke pulse color />` (the line-art heart-clock SVG),
+     plus `<HeartWatermark>` (the large faint top-right heart-clock, gated by `decor.watermark`).
+   - **Calendar:** `headerWave` strip (120px, masked, behind the status bar + header rows on Calendar and
+     Triggers); today column 7% 🩵 wash + 🩵 weekday label; the always-on 🩵 emoji `elevenRow` marker in the
+     gutter at the 11:11 point; the white-pearl FAB gains a 🩵 hairline ring + always-on ~11s ripple
+     (`decor.fabRipple` on the default `Fab`). All calendar 11:11 extras are gated by `decor.elevenRow`.
+   - **Sheets (`decor.sheetWave`):** the sheet becomes the full drifting wave + a gradient scrim, with the
+     grabber/pulsing-heart band on the wave and content on a frosted `backdrop-filter: blur` panel
+     (`.tt-sheet-panel`, `mx-3 mb-[42px]`). `SheetGrabber` gained an 11:11 band branch. `EntryDetailSheet`
+     was split into the same outer-drag/inner-scroll structure as `EntryForm` (the band/wave render as
+     siblings above the scroll; the form body JSX is NOT duplicated - `SheetGrabber` just renders in a
+     different slot per `sheetWave`). The small future-date confirm modal + `DateTimeDialog` stay plain
+     light sheets (no wave) by choice.
+   - **Triggers/Settings/About:** Triggers gets the header wave + the fixed white "11:11" watermark at the
+     bottom (`triggersEleven`, content scrolls over it). Settings + About get the `<HeartWatermark>`. The
+     11:11 Settings theme card: denim card, 🩵 border + halo, wave fading in on the right, 22px heart-clock
+     icon, 🩵 check disc (same active-card pattern as leopard/2000s).
+   - **Motion:** `tt-drift` (wave), `tt-beat` (heart breath), `tt-ring` (11s FAB ripple) added to index.css
+     behind `tt-*` classes + the global reduced-motion guard; `App` toggles `.app-hidden` on
+     `visibilitychange` to pause the wave drift when backgrounded. Verified: tsc clean, 26 tests, build+SW
+     OK, all `tt-*` classes confirmed in the bundled CSS.
+7. **Phase 7 - cross-theme spec-fidelity cleanup. DONE (2026-10-08).**
+   - **Dashed half-hour grid lines** (`border-dashed` on the odd grid rows) - leopard/2000s/11:11 specs ask
+     for this; near-invisible on etas so harmless.
+   - **Triggers sub-tabs -> sliding segmented control** for all themes (same pattern as the Week/Day toggle,
+     `segmentActiveBg`/`segment-active-text`), replacing the old static symptom-coloured tabs. This resolves
+     the former "unselected sub-tab is structural grey" minor item.
+   - **2000s Y2K star motif** behind a new `decor.y2kStars` flag + a shared `<Star>` component: a twinkling
+     star on the today marker (`.tt-twinkle`), gold stars as Trigger List bullets, and a pink star in place
+     of the ✓ on the active 2000s Settings theme card.
+   - **Deliberately left for the screenshot-comparison pass / later:** the leopard theme card's gold border
+     stays the solid `#B8862C` approximation (a true gradient border needs a padding-wrapper or fragile
+     background-clip); the M4 toggle-overshoot easing (per-theme, minor); the etas "✓ Saved" + chip-into-slot
+     + sheet-exit animations (flow-touching); and the spec's inset-ring input focus (the per-type accent
+     focus border is the deliberate existing choice).
 Each phase is small and independently verifiable on-device.
 
 ## Status
@@ -404,12 +443,13 @@ navigation; and persisted calendar view state + 06:30 open position.
 - Wire up the other **Settings placeholders**: Language (i18n), Request Features / Bug Support,
   and the Danger Area **Delete All Data** (should clear the Dexie `entries` table).
 - **About** page content (still a placeholder).
-- **Visual design polish / theme redesign.** IN PROGRESS - see "Active workstream: theme redesign"
-  above. The four themes are being rebuilt from Claude Design specs (`theme_specs/`). Phase 1 not
-  started yet. Font Awesome icons were mentioned as a later swap for the emoji.
+- **Visual design polish / theme redesign.** All spec implementation COMPLETE (Phases 1-7, 2026-10-08) -
+  see "Active workstream: theme redesign" above. All four themes are built from the Claude Design specs
+  (`theme_specs/`). NEXT for this workstream: a screenshot comparison of each theme vs its `.dc.html`/`.png`
+  mockup to catch small visual deltas, then the deferred polish items listed under Phase 7. Font Awesome
+  icons were mentioned as a later swap for the emoji.
 - **Phase 2 notifications** (iOS Web Push via a GitHub Actions cron - see `context.md`).
-- Minor: the unselected Triggers sub-tab label is still a structural neutral grey (not themed);
-  Back closing an open modal before switching tabs; Duplicate doesn't run the future-date check.
+- Minor: Back closing an open modal before switching tabs; Duplicate doesn't run the future-date check.
 
 The codebase is small, typed, and tested - prefer extending the DAL + `lib/` helpers (with
 tests) and keeping view logic thin, and route all colours through `lib/theme.ts`.

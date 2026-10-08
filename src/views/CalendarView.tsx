@@ -24,6 +24,13 @@ import {
   PILL_BORDER_IDLE,
   PILL_CLASS,
 } from '../lib/theme'
+import { useDecor } from '../lib/theme-context'
+import { WaveAccent } from '../components/decor'
+
+// 11:11 header strip: the wave fades out by ~120px, behind the status bar and the
+// month/filter rows only (never the grid).
+const HEADER_WAVE_MASK =
+  'linear-gradient(180deg,#000 0%,rgba(0,0,0,.6) 45%,transparent 100%)'
 
 type ViewMode = 'week' | 'day'
 
@@ -60,7 +67,7 @@ function FilterChip({
       aria-label={name ?? label}
       title={name}
       className={`${PILL_CLASS} tap min-w-[2.5rem] whitespace-nowrap text-center text-text-secondary ${className} ${
-        active ? 'font-semibold' : ''
+        active ? 'font-bold' : ''
       }`}
       style={{
         backgroundColor: PILL_BG_COLOUR,
@@ -73,6 +80,7 @@ function FilterChip({
 }
 
 export function CalendarView() {
+  const decor = useDecor()
   // `anchor` is any date within the visible range. State is seeded from the
   // session-remembered values so it survives tab switches.
   const [anchor, setAnchor] = useState<Date>(() => savedAnchor ?? new Date())
@@ -161,7 +169,7 @@ export function CalendarView() {
 
   const unit = viewMode === 'week' ? 'week' : 'day'
   const arrowBtn =
-    'flex h-8 w-7 shrink-0 items-center justify-center rounded-lg text-lg text-text-secondary active:bg-divider'
+    'flex h-8 w-7 shrink-0 items-center justify-center rounded-lg text-xl text-text-secondary active:bg-divider'
 
   return (
     <div
@@ -172,8 +180,15 @@ export function CalendarView() {
         paddingRight: 'env(safe-area-inset-right)',
       }}
     >
+      {/* 11:11: faint wave strip behind the status bar + header rows. */}
+      {decor.headerWave && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[120px] overflow-hidden">
+          <WaveAccent opacity={0.26} mask={HEADER_WAVE_MASK} />
+        </div>
+      )}
+
       {/* Row 1: date nav (arrows flank the month) + Today + Week/Day */}
-      <div className="flex shrink-0 items-center justify-between gap-2 px-2 py-2">
+      <div className="relative flex shrink-0 items-center justify-between gap-2 px-2 py-2">
         <div className="flex min-w-0 items-center gap-0.5">
           <button
             type="button"
@@ -183,7 +198,7 @@ export function CalendarView() {
           >
             ‹
           </button>
-          <h1 className="font-display truncate text-base font-bold text-text-primary">
+          <h1 className="font-display truncate text-2xl font-extrabold text-text-primary">
             {monthLabel}
           </h1>
           <button
@@ -199,7 +214,8 @@ export function CalendarView() {
           <button
             type="button"
             onClick={() => setAnchor(new Date())}
-            className="rounded-lg px-2 py-1 text-sm font-medium text-text-secondary active:bg-divider"
+            className="tap rounded-full px-3.5 py-2 text-sm font-medium text-text-secondary"
+            style={{ backgroundColor: COLORS.pillBg }}
           >
             Today
           </button>
@@ -209,12 +225,13 @@ export function CalendarView() {
             aria-label={
               viewMode === 'week' ? 'Switch to Day view' : 'Switch to Week view'
             }
-            className="relative flex w-28 shrink-0 overflow-hidden rounded-lg border border-input-border text-sm"
+            className="relative flex w-28 shrink-0 rounded-full p-0.5 text-sm"
+            style={{ backgroundColor: COLORS.switchTrack }}
           >
-            {/* Sliding highlight - slides to the active option. */}
+            {/* Inset sliding thumb - slides to the active option. */}
             <span
               aria-hidden="true"
-              className="absolute inset-y-0 left-0 w-1/2 transition-transform duration-200 ease-out"
+              className="absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-full transition-transform duration-200 ease-out"
               style={{
                 transform: viewMode === 'day' ? 'translateX(100%)' : 'translateX(0)',
                 backgroundColor: COLORS.segmentActiveBg,
@@ -223,7 +240,7 @@ export function CalendarView() {
             {(['week', 'day'] as ViewMode[]).map((m) => (
               <span
                 key={m}
-                className={`relative z-10 flex-1 py-1 text-center ${
+                className={`relative z-10 flex-1 py-1.5 text-center ${
                   viewMode === m ? 'font-semibold text-segment-active-text' : 'text-text-secondary'
                 }`}
               >
@@ -235,7 +252,7 @@ export function CalendarView() {
       </div>
 
       {/* Row 2: filters (full width, scrollable) */}
-      <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto px-3 pb-2">
+      <div className="relative flex shrink-0 items-center gap-1.5 overflow-x-auto px-3 pb-2">
         <FilterChip
           label={FILTER_CHIP_META.all.display}
           name={FILTER_CHIP_META.all.label}

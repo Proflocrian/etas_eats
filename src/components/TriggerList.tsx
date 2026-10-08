@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { TriggerableEntry } from '../db/db'
 import { getPossibleTriggers } from '../db/entries'
 import { entryTitle } from '../lib/entryTypes'
-import { ENTRY_TYPE_META } from '../lib/theme'
+import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { EntryDetailSheet } from './EntryDetailSheet'
 
 export function TriggerList() {
@@ -28,26 +28,34 @@ export function TriggerList() {
 
   return (
     <div className="px-4 py-3">
-      <ul className="flex flex-col">
-        {items.map((e) => (
-          <li key={e.id}>
-            <button
-              type="button"
-              onClick={() => setSelected(e)}
-              className="flex w-full items-center gap-2 py-2 text-left active:opacity-70"
-            >
-              <span className="text-text-muted">•</span>
-              <span
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ backgroundColor: ENTRY_TYPE_META[e.entryType].border }}
-              />
-              <span className="flex-1 truncate text-sm text-text-primary">
-                {entryTitle(e)}
-              </span>
-            </button>
-          </li>
+      {/* Grouped card (like a Settings list) - each flagged entry is a tappable
+          row with its type dot and a chevron into the detail sheet. */}
+      <div
+        className="overflow-hidden rounded-xl border border-card-border"
+        style={{ backgroundColor: COLORS.settingsButtonBg }}
+      >
+        {items.map((e, i) => (
+          <button
+            key={e.id}
+            type="button"
+            onClick={() => setSelected(e)}
+            className={`flex w-full items-center gap-3 px-4 py-3 text-left active:opacity-70 ${
+              i > 0 ? 'border-t border-divider' : ''
+            }`}
+          >
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: ENTRY_TYPE_META[e.entryType].border }}
+            />
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
+              {entryTitle(e)}
+            </span>
+            <span className="shrink-0 text-text-muted" aria-hidden="true">
+              ›
+            </span>
+          </button>
         ))}
-      </ul>
+      </div>
 
       {selected && (
         <EntryDetailSheet

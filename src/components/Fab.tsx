@@ -69,6 +69,29 @@ export function Fab({ onClick }: { onClick: () => void }) {
     )
   }
 
+  if (decor.fabTreatment === 'heart') {
+    // 11:11: the FAB is the 🩵 itself, with the always-on ripple ring around it.
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label="Add entry"
+        className={`tap-fab absolute bottom-4 right-4 flex items-center justify-center active:brightness-95 ${
+          decor.fabRipple ? 'tt-fab-ripple' : ''
+        }`}
+        style={{ width: 56, height: 56 }}
+      >
+        <span
+          className="text-[44px] leading-none"
+          style={{ filter: 'drop-shadow(0 3px 6px rgba(8,24,48,.55))' }}
+          aria-hidden="true"
+        >
+          🩵
+        </span>
+      </button>
+    )
+  }
+
   if (decor.fabTreatment === 'leopard') {
     return (
       <button
@@ -105,13 +128,20 @@ export function Fab({ onClick }: { onClick: () => void }) {
     )
   }
 
+  // 11:11: white pearl on denim with a hairline 🩵 ring and an always-on ripple.
+  const ripple = !!decor.fabRipple
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label="Add entry"
-      className={`${base} h-14 w-14 text-on-primary`}
-      style={{ backgroundColor: COLORS.fabBg, boxShadow: COLORS.fabShadow }}
+      className={`${base} h-14 w-14 text-on-primary ${ripple ? 'tt-fab-ripple' : ''}`}
+      style={{
+        backgroundColor: COLORS.fabBg,
+        boxShadow: ripple
+          ? `0 0 0 1px rgba(168,216,234,.6), ${COLORS.fabShadow}`
+          : COLORS.fabShadow,
+      }}
     >
       <Plus size={28} />
     </button>

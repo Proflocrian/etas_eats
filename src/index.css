@@ -61,6 +61,17 @@ textarea::placeholder {
   --color-switch-no-text: var(--color-switch-no-text-sheet);
 }
 
+/* 11:11 frosted field panel: sheet content sits on one translucent, blurred panel
+   over the drifting wave, so text stays dark-on-light wherever the wave runs. */
+.tt-sheet-panel {
+  background-color: rgba(245, 248, 251, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 8px 30px rgba(10, 30, 60, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
 :root {
   color-scheme: light;
   /* Pre-JS fallbacks for the string-valued treatment tokens (default theme).
@@ -203,7 +214,8 @@ body,
   width: 30%;
   pointer-events: none;
   background: linear-gradient(100deg, transparent, rgba(255, 244, 214, 0.55), transparent);
-  animation: cl-band 6s 1s ease-in-out infinite;
+  /* No delay, so the sweep begins the moment the card becomes selected. */
+  animation: cl-band 6s ease-in-out infinite;
 }
 
 /* ---- Trashy 2000s theme motion. ---- */
@@ -244,6 +256,38 @@ body,
   animation: tt-shimmer 6s ease-in-out infinite;
 }
 
+/* Y2K star twinkle (today marker): scales + rotates in and out. */
+@keyframes tt-twinkle {
+  0%,
+  100% {
+    transform: scale(0.2) rotate(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1) rotate(45deg);
+    opacity: 1;
+  }
+}
+.tt-twinkle {
+  animation: tt-twinkle 3.2s ease-in-out infinite;
+}
+
+/* Bigger, more frequent twinkle - the 2000s background star field. */
+@keyframes tt-twinkle-lg {
+  0%,
+  100% {
+    transform: scale(0.3) rotate(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.35) rotate(45deg);
+    opacity: 1;
+  }
+}
+.tt-twinkle-lg {
+  animation: tt-twinkle-lg 2.1s ease-in-out infinite;
+}
+
 /* The star on the selected nav tab pops in on tab change. */
 @keyframes tt-pop {
   0% {
@@ -256,8 +300,105 @@ body,
     transform: scale(1);
   }
 }
+/* A gentle ongoing twinkle (nav star keeps sparkling after it pops in). */
+@keyframes tt-sparkle {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.28);
+    opacity: 1;
+  }
+}
 .tt-nav-star {
-  animation: tt-pop 0.5s ease-out both;
+  animation:
+    tt-pop 0.5s ease-out both,
+    tt-sparkle 2.2s 0.5s ease-in-out infinite;
+}
+
+/* 2000s rhinestone Save: a pink glow plus an inset dashed white ring. */
+.tt-save {
+  position: relative;
+  box-shadow:
+    0 0 8px rgba(224, 0, 122, 0.4),
+    0 2px 5px rgba(224, 0, 122, 0.32);
+}
+.tt-save::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+}
+
+
+/* ---- 11:11 theme motion. ---- */
+
+/* a. Wave drift: one 480px tile per 140-160s (set inline). The oversized inner is
+   rotated -14deg for a diagonal flow; moving background-position is cheap. */
+@keyframes tt-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -478px 0;
+  }
+}
+.tt-wave {
+  transform: rotate(-14deg);
+  animation-name: tt-drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* b. Heart breath: the sheet heart-clock glows gently, 6s. */
+@keyframes tt-beat {
+  0%,
+  100% {
+    opacity: 0.82;
+    filter: drop-shadow(0 0 0 rgba(168, 216, 234, 0));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(168, 216, 234, 0.85));
+  }
+}
+.tt-heart-pulse {
+  animation: tt-beat 6s ease-in-out infinite;
+}
+
+/* c. FAB ripple: a 🩵 ring pulses out on an ~11s cycle (brief ripple ~0-29%, then
+   rests). Always on - a nod to 11, not time-of-day dependent. */
+@keyframes tt-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  29% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+.tt-fab-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #a8d8ea;
+  pointer-events: none;
+  animation: tt-ring 11s ease-out infinite;
+}
+
+/* Pause the wave drift while the app is backgrounded, to save battery. */
+.app-hidden .tt-wave {
+  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {

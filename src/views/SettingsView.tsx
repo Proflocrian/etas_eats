@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { COLORS, type Palette, type ThemeId, THEMES } from '../lib/theme'
 import { useTheme } from '../lib/theme-context'
+import { HeartClock, HeartWatermark, Sparkles, Star, WaveAccent } from '../components/decor'
+
+// 11:11 theme card: the wave fades in from the right.
+const CARD_WAVE_MASK = 'linear-gradient(90deg,transparent,#000 75%)'
 
 // Colours shown as a preview swatch row for each theme.
 const SWATCH_KEYS: (keyof Palette)[] = [
@@ -19,7 +23,7 @@ const LANGUAGES: { id: string; label: string; flag: string }[] = [
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="px-1 pb-2 pt-5 text-sm font-semibold text-text-muted">{children}</h2>
+    <h2 className="px-1 pb-2 pt-5 text-lg font-extrabold text-text-primary">{children}</h2>
   )
 }
 
@@ -29,14 +33,15 @@ export function SettingsView() {
 
   return (
     <div
-      className="flex h-full flex-col"
+      className="relative flex h-full flex-col overflow-hidden"
       style={{
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
         paddingLeft: 'max(1rem, env(safe-area-inset-left))',
         paddingRight: 'max(1rem, env(safe-area-inset-right))',
       }}
     >
-      <h1 className="font-display shrink-0 px-1 py-2 text-xl font-bold text-text-primary">
+      <HeartWatermark />
+      <h1 className="font-display relative shrink-0 px-1 py-2 text-4xl font-extrabold text-text-primary">
         Settings
       </h1>
 
@@ -53,6 +58,27 @@ export function SettingsView() {
             const leopardActive = id === 'cunty-leopard' && active
             // Trashy 2000s active card: drifting holographic fill + pink rhinestone border.
             const trashyActive = id === 'trashy-2000s' && active
+            // 11:11 active card: denim card, 🩵 border + halo, wave on the right, a
+            // heart-clock icon and a 🩵 check disc.
+            const elevenActive = id === 'eleven-eleven' && active
+            // The palette preview dots. On leopard's dark espresso plate they take a
+            // faint gold ring (so the dark swatches stay visible); elsewhere a hairline.
+            const swatchDots = (
+              <span className="flex gap-1">
+                {SWATCH_KEYS.map((k) => (
+                  <span
+                    key={k}
+                    className="h-4 w-4 rounded-full"
+                    style={{
+                      backgroundColor: theme.palette[k],
+                      boxShadow: leopardActive
+                        ? '0 0 0 1px rgba(245,221,151,.45)'
+                        : '0 0 0 1px rgba(0,0,0,.1)',
+                    }}
+                  />
+                ))}
+              </span>
+            )
             return (
               <button
                 key={id}
@@ -61,62 +87,110 @@ export function SettingsView() {
                 aria-pressed={active}
                 className={`flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left ${
                   leopardActive ? 'cl-theme-card' : ''
-                } ${trashyActive ? 'tt-holo-band' : ''}`}
+                } ${trashyActive ? 'tt-holo-band relative overflow-hidden' : ''} ${
+                  elevenActive ? 'relative overflow-hidden' : ''
+                }`}
                 style={
                   leopardActive
                     ? { background: 'var(--leopard-bold-sm)', borderColor: '#B8862C' }
                     : trashyActive
                       ? { backgroundImage: 'var(--tt-holo)', borderColor: '#FF5FB0' }
-                      : {
-                          backgroundColor: COLORS.settingsButtonBg,
-                          borderColor: active ? theme.palette.primaryAction : COLORS.cardBorder,
-                        }
+                      : elevenActive
+                        ? {
+                            backgroundColor: COLORS.settingsButtonBg,
+                            borderColor: '#A8D8EA',
+                          }
+                        : {
+                            backgroundColor: COLORS.settingsButtonBg,
+                            borderColor: active ? theme.palette.primaryAction : COLORS.cardBorder,
+                          }
                 }
               >
-                <div className="flex items-center gap-3">
+                {elevenActive && <WaveAccent opacity={0.55} mask={CARD_WAVE_MASK} />}
+                {trashyActive && <Sparkles />}
+                <div className="relative flex items-center gap-3">
+                  {elevenActive && <HeartClock size={22} stroke={1.5} color="#FFFFFF" />}
                   {leopardActive ? (
+                    // One espresso plate wrapping the name AND the palette.
                     <span
-                      className="rounded-[13px] px-2.5 py-0.5 text-base font-semibold"
+                      className="flex items-center gap-2.5 rounded-full px-3 py-1"
+                      style={{ background: '#17100A', boxShadow: 'inset 0 0 0 1px #8C6421' }}
+                    >
+                      <span
+                        className="text-base font-semibold"
+                        style={{
+                          color: '#F3D58C',
+                          fontFamily: theme.fontDisplay ?? theme.font,
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        {theme.label}
+                      </span>
+                      {swatchDots}
+                    </span>
+                  ) : (
+                    <>
+                      {id === 'etas-eats' ? (
+                        // Styled like the Uber Eats wordmark: "Eats" in the brand green.
+                        <span className="text-base" style={{ fontFamily: theme.font }}>
+                          <span className="font-bold text-text-primary">Etas </span>
+                          <span
+                            className="font-bold"
+                            style={{ color: theme.palette.primaryAction }}
+                          >
+                            Eats
+                          </span>
+                        </span>
+                      ) : (
+                        <span
+                          className="text-base font-semibold text-text-primary"
+                          style={{
+                            fontFamily: theme.fontDisplay ?? theme.font,
+                            fontStyle: theme.fontDisplayStyle ?? 'normal',
+                          }}
+                        >
+                          {theme.label}
+                        </span>
+                      )}
+                      {swatchDots}
+                    </>
+                  )}
+                </div>
+                {active &&
+                  (elevenActive ? (
+                    <span
+                      className="relative flex h-[26px] w-[26px] items-center justify-center rounded-full text-sm font-bold"
+                      style={{ backgroundColor: '#A8D8EA', color: '#12304F' }}
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                  ) : trashyActive ? (
+                    <span className="relative">
+                      <Star size={20} color={theme.palette.primaryAction} />
+                    </span>
+                  ) : leopardActive ? (
+                    // Espresso disc with a gold tick (spec T8).
+                    <span
+                      className="relative flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold"
                       style={{
                         background: '#17100A',
                         color: '#F3D58C',
                         boxShadow: 'inset 0 0 0 1px #8C6421',
-                        fontFamily: theme.fontDisplay ?? theme.font,
-                        fontStyle: 'italic',
                       }}
+                      aria-hidden="true"
                     >
-                      {theme.label}
+                      ✓
                     </span>
                   ) : (
                     <span
-                      className="text-base font-semibold text-text-primary"
-                      style={{
-                        fontFamily: theme.fontDisplay ?? theme.font,
-                        fontStyle: theme.fontDisplayStyle ?? 'normal',
-                      }}
+                      className="relative text-lg font-bold"
+                      style={{ color: theme.palette.primaryAction }}
+                      aria-hidden="true"
                     >
-                      {theme.label}
+                      ✓
                     </span>
-                  )}
-                  <span className="flex gap-1">
-                    {SWATCH_KEYS.map((k) => (
-                      <span
-                        key={k}
-                        className="h-4 w-4 rounded-full border border-black/10"
-                        style={{ backgroundColor: theme.palette[k] }}
-                      />
-                    ))}
-                  </span>
-                </div>
-                {active && (
-                  <span
-                    className="text-lg font-bold"
-                    style={{ color: leopardActive ? '#F3D58C' : theme.palette.primaryAction }}
-                    aria-hidden="true"
-                  >
-                    ✓
-                  </span>
-                )}
+                  ))}
               </button>
             )
           })}

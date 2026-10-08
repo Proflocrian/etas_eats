@@ -65,7 +65,7 @@ export function LastSymptoms() {
             key={symptom.id}
             className="overflow-hidden rounded-xl border"
             style={{
-              backgroundColor: COLORS.settingsButtonBg,
+              backgroundColor: COLORS.cardBg,
               borderColor: COLORS.cardBorder,
               boxShadow: COLORS.cardShadow,
             }}
@@ -120,7 +120,7 @@ export function LastSymptoms() {
                           className="h-2 w-2 shrink-0 rounded-full"
                           style={{ backgroundColor: meta.border }}
                         />
-                        <span className="min-w-0 flex-1 truncate text-sm text-text-primary">
+                        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
                           {entryTitle(p)}
                         </span>
                       </button>

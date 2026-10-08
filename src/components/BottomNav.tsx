@@ -20,6 +20,7 @@ export function BottomNav({
   const decor = useDecor()
   const print = !!decor.navPrint
   const velour = !!decor.navVelour
+  const heartMark = !!decor.navHeartMark
   return (
     <nav
       className={`relative flex shrink-0 ${print || velour ? '' : 'border-t border-divider'}`}
@@ -59,6 +60,14 @@ export function BottomNav({
                 style={{ background: 'var(--gold-line)' }}
               />
             )}
+            {/* 🩵 tab mark on the selected tab (11:11). */}
+            {heartMark && isActive && (
+              <span
+                aria-hidden="true"
+                className="absolute left-1/2 top-0 h-[3px] w-6 -translate-x-1/2 rounded-b-[3px]"
+                style={{ background: '#A8D8EA' }}
+              />
+            )}
             {/* Glass pill + a little star on the selected tab (2000s velour). */}
             {velour && isActive && (
               <>
@@ -69,7 +78,7 @@ export function BottomNav({
                 />
                 <span
                   aria-hidden="true"
-                  className="tt-nav-star absolute left-1/2 top-0.5 -translate-x-1/2"
+                  className="tt-nav-star absolute right-2 top-1"
                   style={{ color: '#FFF3B0' }}
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">

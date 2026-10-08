@@ -1,3 +1,15 @@
+# Current Instructions:
+
+Awesome - good job, everything seems to work very well! There's just a few tweaks, and I wanna do theme in batches like this; 
+
+A couple tiny tweaks; 
+
+- The glimmer animation on the cunty slected theme swatch, lets make it faster (not more frequent just faster)
+- 
+
+So the gernal UI changes; 
+
+1. 
 # Food Diary PWA — EtasEats
 
 ## Overview
