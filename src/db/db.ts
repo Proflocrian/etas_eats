@@ -4,7 +4,6 @@ import Dexie, { type EntityTable } from 'dexie'
 export type EntryTypeEnum = 'food' | 'activity' | 'symptom'
 
 // Sub-kinds.
-export type FoodEntryTypeEnum = 'meal' | 'snack' | 'drink'
 export type SymptomTypeEnum =
   | 'heartburn'
   | 'regurgitation'
@@ -25,7 +24,6 @@ interface BaseEntry {
 
 export interface FoodEntry extends BaseEntry {
   entryType: 'food'
-  foodType: FoodEntryTypeEnum
   food: string // what was eaten / drunk
   quantity?: string // optional free text, e.g. '1 bowl', '200g'
   calories?: number
@@ -102,6 +100,21 @@ db.version(3)
           e.possibleTrigger === undefined
         ) {
           e.possibleTrigger = false
+        }
+      }),
+  )
+
+// v4: the `foodType` sub-kind ('meal'|'snack'|'drink') was removed; a single
+// free-text food field now covers all of them. Strip the stale field.
+db.version(4)
+  .stores({ entries: '++id, date, entryType' })
+  .upgrade((tx) =>
+    tx
+      .table('entries')
+      .toCollection()
+      .modify((e: { entryType?: string; foodType?: string }) => {
+        if (e.entryType === 'food' && e.foodType !== undefined) {
+          delete e.foodType
         }
       }),
   )

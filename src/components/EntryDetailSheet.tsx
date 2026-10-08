@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { TriggerableEntry } from '../db/db'
 import { updateEntry } from '../db/entries'
 import { formatLongDate, parseDateKey, slotRangeLabel } from '../lib/calendar'
-import { ENTRY_TYPE_META, FOOD_TYPE_LABELS, entryTitle } from '../lib/entryTypes'
+import { entryTitle } from '../lib/entryTypes'
+import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { YesNoSwitch } from './YesNoSwitch'
 
 // Read-only view of a Food/Activity entry. The only editable thing is the
@@ -19,6 +20,35 @@ export function EntryDetailSheet({
   const [possibleTrigger, setPossibleTrigger] = useState(entry.possibleTrigger)
   const meta = ENTRY_TYPE_META[entry.entryType]
 
+  // Swipe-down-to-dismiss (matches EntryForm). Drag starts only at scrollTop 0;
+  // pulling past a third of the sheet height closes.
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const dragStartY = useRef<number | null>(null)
+  const [dragY, setDragY] = useState(0)
+  const [dragging, setDragging] = useState(false)
+
+  function onTouchStart(e: React.TouchEvent) {
+    if ((sheetRef.current?.scrollTop ?? 0) > 0) return
+    dragStartY.current = e.touches[0].clientY
+    setDragging(true)
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (dragStartY.current === null) return
+    const delta = e.touches[0].clientY - dragStartY.current
+    setDragY(delta > 0 ? delta : 0)
+  }
+
+  function onTouchEnd() {
+    if (dragStartY.current === null) return
+    const height = sheetRef.current?.clientHeight ?? 0
+    const shouldClose = dragY > height / 3
+    dragStartY.current = null
+    setDragging(false)
+    if (shouldClose) onClose()
+    else setDragY(0)
+  }
+
   async function toggle(value: boolean) {
     setPossibleTrigger(value)
     await updateEntry(entry.id as number, { possibleTrigger: value })
@@ -26,9 +56,8 @@ export function EntryDetailSheet({
   }
 
   const rows: { label: string; value: string }[] = [{ label: 'Type', value: meta.label }]
-  if (entry.entryType === 'food') {
-    rows.push({ label: 'Food type', value: FOOD_TYPE_LABELS[entry.foodType] })
-    if (entry.quantity) rows.push({ label: 'Quantity', value: entry.quantity })
+  if (entry.entryType === 'food' && entry.quantity) {
+    rows.push({ label: 'Quantity', value: entry.quantity })
   }
   rows.push({
     label: 'When',
@@ -42,9 +71,18 @@ export function EntryDetailSheet({
       onClick={onClose}
     >
       <div
-        className="max-h-[92%] overflow-y-auto rounded-t-2xl bg-white"
+        ref={sheetRef}
+        className="max-h-[92%] overflow-y-auto overscroll-contain rounded-t-2xl"
         onClick={(e) => e.stopPropagation()}
-        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={{
+          backgroundColor: COLORS.sheetBg,
+          paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+          transform: dragY ? `translateY(${dragY}px)` : undefined,
+          transition: dragging ? 'none' : 'transform 0.2s ease-out',
+        }}
       >
         <div className="flex items-center justify-between px-4 py-3">
           <button
@@ -83,7 +121,11 @@ export function EntryDetailSheet({
             <span className="text-sm font-medium text-neutral-600">
               Possible Trigger?
             </span>
-            <YesNoSwitch value={possibleTrigger} onChange={(v) => toggle(v)} />
+            <YesNoSwitch
+              value={possibleTrigger}
+              onChange={(v) => toggle(v)}
+              accentColor={COLORS.triggerPillBorder}
+            />
           </div>
         </div>
       </div>

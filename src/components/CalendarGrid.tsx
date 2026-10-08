@@ -11,11 +11,17 @@ import {
   toDateKey,
   weekdayShort,
 } from '../lib/calendar'
-import { ENTRY_TYPE_META, entryTitle } from '../lib/entryTypes'
+import { entryTitle } from '../lib/entryTypes'
+import { ENTRY_TYPE_META } from '../lib/theme'
 
 const ROW_H = 28 // px per 30-min slot
 const HOUR_H = ROW_H * 2
 const GUTTER = 52 // px width of the left time gutter
+const INITIAL_SCROLL_TOP = 6.5 * HOUR_H // open at 06:30
+
+// Remembers the grid scroll position across tab switches (the view remounts)
+// within a session. Unset on first app load, so the app opens at 06:30.
+let savedScrollTop: number | null = null
 
 function slotIndexOf(time: string): number {
   return Math.floor(timeToMinutes(time) / SLOT_MINUTES)
@@ -26,27 +32,55 @@ export function CalendarGrid({
   entriesByDate,
   onSlotTap,
   onEntryTap,
+  onStep,
 }: {
   days: Date[]
   entriesByDate: Record<string, Entry[]>
   onSlotTap: (dateKey: string, time: string) => void
   onEntryTap: (entry: Entry) => void
+  onStep?: (n: number) => void // horizontal swipe: -1 prev, +1 next
 }) {
   const slots = timeSlots()
   const scrollRef = useRef<HTMLDivElement>(null)
-  const didScroll = useRef(false)
   // Captured once on mount; used only to highlight today's column.
   const [today] = useState(() => new Date())
 
-  // Open at ~07:00 on first mount so she isn't staring at midnight.
+  // Restore the remembered scroll on mount; first app load lands at 06:30.
   useLayoutEffect(() => {
-    if (didScroll.current) return
     const el = scrollRef.current
-    if (el) {
-      el.scrollTop = 7 * HOUR_H
-      didScroll.current = true
-    }
+    if (el) el.scrollTop = savedScrollTop ?? INITIAL_SCROLL_TOP
   }, [])
+
+  // Horizontal swipe -> previous/next range. The grid only scrolls vertically,
+  // so a mostly-horizontal drag is free to use for navigation.
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const didSwipe = useRef(false)
+
+  function onTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0]
+    touchStart.current = { x: t.clientX, y: t.clientY }
+    didSwipe.current = false
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (!touchStart.current) return
+    const t = e.touches[0]
+    const dx = t.clientX - touchStart.current.x
+    const dy = t.clientY - touchStart.current.y
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) didSwipe.current = true
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    const start = touchStart.current
+    touchStart.current = null
+    if (!start) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - start.x
+    const dy = t.clientY - start.y
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      onStep?.(dx < 0 ? 1 : -1) // swipe left -> next, right -> prev
+    }
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -65,7 +99,7 @@ export function CalendarGrid({
               </span>
               <span
                 className={`mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${
-                  isToday ? 'bg-[#e5556e] text-white' : 'text-neutral-800'
+                  isToday ? 'bg-primary text-white' : 'text-neutral-800'
                 }`}
               >
                 {dayNumber(d)}
@@ -80,6 +114,19 @@ export function CalendarGrid({
         ref={scrollRef}
         className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
         style={{ touchAction: 'pan-y' }}
+        onScroll={(e) => {
+          savedScrollTop = e.currentTarget.scrollTop
+        }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onClickCapture={(e) => {
+          // Swallow the tap that ends a swipe so it doesn't open the create form.
+          if (didSwipe.current) {
+            e.stopPropagation()
+            didSwipe.current = false
+          }
+        }}
       >
         <div className="flex" style={{ height: SLOTS_PER_DAY * ROW_H }}>
           {/* Time gutter - hour labels straddling the hour lines. */}

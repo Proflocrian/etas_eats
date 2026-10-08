@@ -1,40 +1,40 @@
-import type {
-  Entry,
-  EntryTypeEnum,
-  FoodEntryTypeEnum,
-  SymptomTypeEnum,
-} from '../db/db'
+import type { Entry, SymptomTypeEnum } from '../db/db'
 
-// Display label + colours for each top-level entry type.
-// Colours are applied via inline styles (Tailwind can't JIT dynamic values).
-export interface EntryTypeMeta {
-  label: string
-  bg: string // chip background
-  text: string // chip text
-  border: string // chip left accent
-}
+export const FOOD_PLACEHOLDERS: string[] = [
+  'Girl Dinner 💅 (Just Rice)',
+  'Cookie (That Dyllan Hid)',
+  'Cocktails with bbz 🍸',
+  'Matchaaa 🍵',
+  'Fish & Veggies 🐟',
+  'Leftover Pizza 🍕 (No Regrets)',
+  'Iced Oat Latte ☕',
+  'Spicy Noodles 🌶️ (Risky)',
+  'Sad Desk Salad 🥗',
+  'Midnight Toast 🍞',
+  'Smoothie (Pretending Its Healthy)',
+  'Chocolate 🍫 (Emotional Support)',
+  'Pasta for Two 🍝',
+  'Just Snacks Tbh',
+  'Water (Finally) 💧',
+]
 
-export const ENTRY_TYPE_META: Record<EntryTypeEnum, EntryTypeMeta> = {
-  food: { label: 'Food', bg: '#e7f5e9', text: '#1b5e20', border: '#4caf50' },
-  activity: { label: 'Activity', bg: '#e6f0fb', text: '#0d47a1', border: '#2196f3' },
-  symptom: { label: 'Symptom', bg: '#fde7ea', text: '#9b1c2e', border: '#e5556e' },
-}
-
-export const ENTRY_TYPE_OPTIONS: EntryTypeEnum[] = ['food', 'activity', 'symptom']
-
-export const FOOD_TYPE_LABELS: Record<FoodEntryTypeEnum, string> = {
-  meal: 'Meal',
-  snack: 'Snack',
-  drink: 'Drink',
-}
-export const FOOD_TYPE_OPTIONS: FoodEntryTypeEnum[] = ['meal', 'snack', 'drink']
-
-// Placeholder for the Food text field, by food type.
-export const FOOD_PLACEHOLDERS: Record<FoodEntryTypeEnum, string> = {
-  meal: 'Fish & Veggies | Girl Dinner (Just Rice)',
-  snack: 'Cookie (that Dyllan hid from me)',
-  drink: 'Matcha | Cocktail with bbz',
-}
+export const ACTIVITY_PLACEHOLDERS: string[] = [
+  'Gym 🏋️‍♀️',
+  'Sex with Dyllan 🥵',
+  'Nap 😴',
+  'Lay Down After Eating (Oops)',
+  'Hot Girl Walk 🚶‍♀️',
+  'Yoga (Ish)',
+  'Doomscrolling in Bed 📱',
+  'Ran for the Bus 🏃‍♀️',
+  'Cried a Little (Normal)',
+  'Pilates 🧘‍♀️',
+  'Pottery (Should Have No Affect Babe)',
+  'Was stressed',
+  'Late Night Snack Raid',
+  'Danced with Dyllan xxx',
+  'Big Stretch 🙆‍♀️',
+]
 
 export const SYMPTOM_TYPE_LABELS: Record<SymptomTypeEnum, string> = {
   heartburn: 'Heartburn',

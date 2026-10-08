@@ -1,24 +1,3 @@
-# Current Instructions
-
-There are two tabs; 
-
-- Last Symptoms (think a cool emoji)
-- Trigger List (think of another suitable emoji)
-
-Where, the Last Symptoms shows the last 5 times there was a SymptomEntry (in reverse chronological order), then under each SymptomEntry, it shows the 4 FoodEntry | ActivityEntry that happened before that. This should be shown in an intuitive way, so try be creative with it. 
-
-The idea being here, lets say she had Heartburn today at 13:00, she can see the 4 FoodEntry | ActivityEntry that happened just prior, she can then click a checkbox on the right of those Entrys called `Possible Trigger` (so we need to add this as a bool to those to Entry Types with default == False). This is so she can review what she did before, just prior to feeling sick. 
-
-The trigger list tab (for now), is just a list of possible triggers (ie where `possible_trigger==true`). This should be in bulletpoint form, where just the food/activity name is show. If she clicks that entry, she'll get something very similar to the `EntryForm` popup, where she can see all of the information of the Entry, but in this view, she can only change `possible_trigger` and nothing else about this Entry. 
-
-Likewise, when back on the CalendarView, there is now a `possible_trigger`, which ofc, she can flick yes / no there. 
-
-This was quite hard to explain, so lmk if you understand, and please feel to ask if you have any clarifying questions. 
-
-And again, I dont really know the _best_ way to show these two tabs, so you'll have to be quite creative here
-
----
-
 # Food Diary PWA — EtasEats
 
 ## Overview

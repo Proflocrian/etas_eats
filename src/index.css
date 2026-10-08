@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 
+/* Primary action colour. Generates bg-primary / text-primary / border-primary.
+   The value here is only the default/fallback for the Simple theme; the active
+   theme overrides --color-primary at runtime (see theme.ts applyTheme). */
+@theme {
+  --color-primary: #6B00EB;
+}
+
 :root {
   color-scheme: light;
 }
@@ -10,14 +17,22 @@ body,
   height: 100%;
 }
 
+/* App-like: no pull-to-refresh / scroll chaining when dragging at the edges. */
+html,
+body {
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
-  background-color: #fff8f3;
+  background-color: var(--color-app-bg, #fff8f3);
   -webkit-font-smoothing: antialiased;
-  font-family:
+  font-family: var(
+    --app-font,
     system-ui,
     -apple-system,
     'Segoe UI',
     Roboto,
-    sans-serif;
+    sans-serif
+  );
 }

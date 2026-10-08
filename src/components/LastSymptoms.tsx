@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import type { SymptomEntry, TriggerableEntry } from '../db/db'
 import { getEntriesBefore, getRecentSymptoms, updateEntry } from '../db/entries'
 import { entryDateTime, formatGap, formatLongDate, parseDateKey } from '../lib/calendar'
-import { ENTRY_TYPE_META, entryTitle } from '../lib/entryTypes'
+import { entryTitle } from '../lib/entryTypes'
+import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { EntryDetailSheet } from './EntryDetailSheet'
 import { YesNoSwitch } from './YesNoSwitch'
 
@@ -119,6 +120,7 @@ export function LastSymptoms() {
                         value={p.possibleTrigger}
                         onChange={(v) => setTrigger(p, v)}
                         size="sm"
+                        accentColor={COLORS.triggerPillBorder}
                       />
                     </div>
                   )

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BottomNav, type Tab } from './components/BottomNav'
+import { COLORS } from './lib/theme'
 import { AboutView } from './views/AboutView'
 import { CalendarView } from './views/CalendarView'
 import { SettingsView } from './views/SettingsView'
@@ -29,7 +30,7 @@ function App() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-[#fff8f3]">
+    <div className="flex h-full flex-col" style={{ backgroundColor: COLORS.appBg }}>
       {/* min-h-0 lets the active view own its own vertical scroll. */}
       <main className="min-h-0 flex-1 overflow-hidden">
         {tab === 'calendar' && <CalendarView />}

@@ -1,14 +1,9 @@
-import { useState } from 'react'
-import type {
-  Entry,
-  EntryTypeEnum,
-  FoodEntryTypeEnum,
-  NewEntry,
-  SymptomTypeEnum,
-} from '../db/db'
+import { useRef, useState } from 'react'
+import type { Entry, EntryTypeEnum, NewEntry, SymptomTypeEnum } from '../db/db'
 import { addEntry, deleteEntry, replaceEntry } from '../db/entries'
 import {
   dateKeyToInput,
+  entryDateTime,
   inputToDateKey,
   slotRangeLabel,
   timeSlots,
@@ -16,41 +11,46 @@ import {
 import { DateTimeDialog } from './DateTimeDialog'
 import { YesNoSwitch } from './YesNoSwitch'
 import {
-  ENTRY_TYPE_META,
-  ENTRY_TYPE_OPTIONS,
+  ACTIVITY_PLACEHOLDERS,
   FOOD_PLACEHOLDERS,
-  FOOD_TYPE_LABELS,
-  FOOD_TYPE_OPTIONS,
   SYMPTOM_TYPE_LABELS,
   SYMPTOM_TYPE_OPTIONS,
 } from '../lib/entryTypes'
+import {
+  COLORS,
+  ENTRY_TYPE_EMOJI,
+  ENTRY_TYPE_META,
+  ENTRY_TYPE_ORDER,
+  PILL_BG_COLOUR,
+  PILL_BORDER_IDLE,
+  PILL_CLASS,
+} from '../lib/theme'
 
 function Pill({
   selected,
   onClick,
   children,
-  style,
+  accent = COLORS.primaryAction,
+  ariaLabel,
 }: {
   selected: boolean
   onClick: () => void
   children: React.ReactNode
-  style?: React.CSSProperties
+  accent?: string // selected border colour (defaults to the brand pink)
+  ariaLabel?: string // accessible name when the content is an emoji
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`shrink-0 rounded-full border px-3 py-1.5 text-sm ${
-        selected
-          ? 'border-transparent font-semibold'
-          : 'border-neutral-300 text-neutral-600'
-      }`}
-      style={
-        selected
-          ? (style ?? { backgroundColor: '#e5556e', color: '#fff' })
-          : undefined
-      }
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      className={`${PILL_CLASS} text-neutral-600 ${selected ? 'font-semibold' : ''}`}
+      style={{
+        backgroundColor: PILL_BG_COLOUR,
+        borderColor: selected ? accent : PILL_BORDER_IDLE,
+      }}
     >
       {children}
     </button>
@@ -58,7 +58,7 @@ function Pill({
 }
 
 const inputClass =
-  'w-full rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-800 outline-none focus:border-[#e5556e]'
+  'w-full rounded-lg border border-neutral-300 px-3 py-2 text-base text-neutral-800 outline-none focus:border-[var(--field-accent)]'
 const labelClass = 'mb-1 block text-sm font-medium text-neutral-600'
 
 export function EntryForm({
@@ -81,9 +81,6 @@ export function EntryForm({
   const [entryType, setEntryType] = useState<EntryTypeEnum>(
     entry?.entryType ?? 'food',
   )
-  const [foodType, setFoodType] = useState<FoodEntryTypeEnum>(
-    entry?.entryType === 'food' ? entry.foodType : 'meal',
-  )
   const [symptomTypes, setSymptomTypes] = useState<Set<SymptomTypeEnum>>(
     () => new Set(entry?.entryType === 'symptom' ? entry.symptomTypes : []),
   )
@@ -100,9 +97,53 @@ export function EntryForm({
       ? entry.possibleTrigger
       : false,
   )
+  const [foodPlaceholder] = useState(
+    () => FOOD_PLACEHOLDERS[Math.floor(Math.random() * FOOD_PLACEHOLDERS.length)],
+  )
+  const [activityPlaceholder] = useState(
+    () =>
+      ACTIVITY_PLACEHOLDERS[
+        Math.floor(Math.random() * ACTIVITY_PLACEHOLDERS.length)
+      ],
+  )
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
+  const [confirmFuture, setConfirmFuture] = useState(false)
+
+  // Swipe-down-to-dismiss (like a native bottom sheet). Dragging starts only
+  // when the sheet is scrolled to the top; pulling past a third of its height closes.
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const dragStartY = useRef<number | null>(null)
+  const [dragY, setDragY] = useState(0)
+  const [dragging, setDragging] = useState(false)
+
+  function onTouchStart(e: React.TouchEvent) {
+    if ((sheetRef.current?.scrollTop ?? 0) > 0) return
+    dragStartY.current = e.touches[0].clientY
+    setDragging(true)
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (dragStartY.current === null) return
+    const delta = e.touches[0].clientY - dragStartY.current
+    setDragY(delta > 0 ? delta : 0)
+  }
+
+  function onTouchEnd() {
+    if (dragStartY.current === null) return
+    const height = sheetRef.current?.clientHeight ?? 0
+    const shouldClose = dragY > height / 3
+    dragStartY.current = null
+    setDragging(false)
+    if (shouldClose) onClose()
+    else setDragY(0)
+  }
+
+  // Input borders turn the entry type's accent colour on focus (idle: neutral).
+  const inputStyle = {
+    '--field-accent': ENTRY_TYPE_META[entryType].border,
+  } as React.CSSProperties
 
   const missingRequired =
     (entryType === 'food' && food.trim() === '') ||
@@ -124,7 +165,6 @@ export function EntryForm({
       return {
         ...base,
         entryType: 'food',
-        foodType,
         food: food.trim(),
         quantity: quantity.trim() || undefined,
         possibleTrigger,
@@ -141,8 +181,7 @@ export function EntryForm({
     return { ...base, entryType: 'symptom', symptomTypes: [...symptomTypes] }
   }
 
-  async function handleSave() {
-    if (missingRequired || saving) return
+  async function doSave() {
     setSaving(true)
     const data = buildNewEntry()
     if (entry) {
@@ -156,6 +195,16 @@ export function EntryForm({
       await addEntry(data)
     }
     onSaved()
+  }
+
+  function handleSave() {
+    if (missingRequired || saving) return
+    // Warn if the entry's datetime is in the future.
+    if (entryDateTime(dateKey, time).getTime() > Date.now()) {
+      setConfirmFuture(true)
+      return
+    }
+    doSave()
   }
 
   async function handleDelete() {
@@ -179,9 +228,18 @@ export function EntryForm({
       onClick={onClose}
     >
       <div
-        className="max-h-[92%] overflow-y-auto rounded-t-2xl bg-white"
+        ref={sheetRef}
+        className="max-h-[67%] overflow-y-auto overscroll-contain rounded-t-2xl"
         onClick={(e) => e.stopPropagation()}
-        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={{
+          backgroundColor: COLORS.sheetBg,
+          paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))',
+          transform: dragY ? `translateY(${dragY}px)` : undefined,
+          transition: dragging ? 'none' : 'transform 0.2s ease-out',
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3">
@@ -200,36 +258,54 @@ export function EntryForm({
             type="button"
             onClick={handleSave}
             disabled={missingRequired || saving}
-            className="rounded-full bg-[#e5556e] px-5 py-1.5 text-sm font-semibold text-white disabled:opacity-40"
+            className="rounded-full bg-primary px-5 py-1.5 text-sm font-semibold text-white disabled:opacity-40"
           >
             Save
           </button>
         </div>
 
-        {/* Fixed content height so switching entry type doesn't resize the
-            sheet. Content packs from the top, so shorter variants leave the
-            whitespace at the bottom (Notes rises naturally). */}
+        {/* Fixed content height (tuned to the tallest variant, Food) so
+            switching entry type doesn't resize the sheet. Hand-tuned px. */}
         <div
           className={`flex flex-col gap-4 px-4 pt-1 ${
-            isEdit ? 'min-h-[580px]' : 'min-h-[510px]'
+            isEdit ? 'min-h-[520px]' : 'min-h-[450px]'
           }`}
         >
-          {/* Entry type chips */}
-          <div className="flex gap-2 overflow-x-auto">
-            {ENTRY_TYPE_OPTIONS.map((t) => {
-              const meta = ENTRY_TYPE_META[t]
-              return (
-                <Pill
-                  key={t}
-                  selected={entryType === t}
-                  onClick={() => setEntryType(t)}
-                  style={{ backgroundColor: meta.border, color: '#fff' }}
-                >
-                  {meta.label}
-                </Pill>
-              )
-            })}
-          </div>
+          {/* Entry type: editable chips on create, read-only on edit. */}
+          {isEdit ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-neutral-600">
+                Entry Type:
+              </span>
+              <span
+                aria-label={ENTRY_TYPE_META[entryType].label}
+                className={`${PILL_CLASS} font-semibold`}
+                style={{
+                  backgroundColor: PILL_BG_COLOUR,
+                  borderColor: ENTRY_TYPE_META[entryType].border,
+                }}
+              >
+                {ENTRY_TYPE_EMOJI[entryType]}
+              </span>
+            </div>
+          ) : (
+            <div className="flex gap-2 overflow-x-auto">
+              {ENTRY_TYPE_ORDER.map((t) => {
+                const meta = ENTRY_TYPE_META[t]
+                return (
+                  <Pill
+                    key={t}
+                    selected={entryType === t}
+                    onClick={() => setEntryType(t)}
+                    ariaLabel={meta.label}
+                    accent={meta.border}
+                  >
+                    {ENTRY_TYPE_EMOJI[t]}
+                  </Pill>
+                )
+              })}
+            </div>
+          )}
 
           {/* Date + timeslot */}
           <div className="flex gap-2">
@@ -237,6 +313,7 @@ export function EntryForm({
               type="date"
               aria-label="Date"
               className={inputClass}
+              style={inputStyle}
               value={dateKeyToInput(dateKey)}
               onChange={(e) => {
                 if (e.target.value) setDateKey(inputToDateKey(e.target.value))
@@ -245,6 +322,7 @@ export function EntryForm({
             <select
               aria-label="Time slot"
               className={inputClass}
+              style={inputStyle}
               value={time}
               onChange={(e) => setTime(e.target.value)}
             >
@@ -261,27 +339,17 @@ export function EntryForm({
           {/* Food fields */}
           {entryType === 'food' && (
             <>
-              <div className="flex gap-2 overflow-x-auto">
-                {FOOD_TYPE_OPTIONS.map((ft) => (
-                  <Pill
-                    key={ft}
-                    selected={foodType === ft}
-                    onClick={() => setFoodType(ft)}
-                  >
-                    {FOOD_TYPE_LABELS[ft]}
-                  </Pill>
-                ))}
-              </div>
               <div>
                 <label className={labelClass} htmlFor="ef-food">
-                  Food
+                  Meal | Snack | Drink
                 </label>
                 <input
                   id="ef-food"
                   className={inputClass}
+                  style={inputStyle}
                   value={food}
                   onChange={(e) => setFood(e.target.value)}
-                  placeholder={FOOD_PLACEHOLDERS[foodType]}
+                  placeholder={foodPlaceholder}
                 />
               </div>
               <div>
@@ -291,6 +359,7 @@ export function EntryForm({
                 <input
                   id="ef-qty"
                   className={inputClass}
+                  style={inputStyle}
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="1 bowl | 200g"
@@ -308,9 +377,10 @@ export function EntryForm({
               <input
                 id="ef-activity"
                 className={inputClass}
+                style={inputStyle}
                 value={activity}
                 onChange={(e) => setActivity(e.target.value)}
-                placeholder="Gym | Sex with Dyllan"
+                placeholder={activityPlaceholder}
               />
             </div>
           )}
@@ -323,6 +393,7 @@ export function EntryForm({
                   key={st}
                   selected={symptomTypes.has(st)}
                   onClick={() => toggleSymptom(st)}
+                  accent={ENTRY_TYPE_META.symptom.border}
                 >
                   {SYMPTOM_TYPE_LABELS[st]}
                 </Pill>
@@ -337,7 +408,11 @@ export function EntryForm({
               <span className="text-sm font-medium text-neutral-600">
                 Possible Trigger?
               </span>
-              <YesNoSwitch value={possibleTrigger} onChange={setPossibleTrigger} />
+              <YesNoSwitch
+                value={possibleTrigger}
+                onChange={setPossibleTrigger}
+                accentColor={COLORS.triggerPillBorder}
+              />
             </div>
           )}
 
@@ -349,6 +424,7 @@ export function EntryForm({
             <textarea
               id="ef-notes"
               className={`${inputClass} min-h-20 resize-none`}
+              style={inputStyle}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="... I love Dyllan 👀"
@@ -360,7 +436,7 @@ export function EntryForm({
             <button
               type="button"
               onClick={() => setDuplicating(true)}
-              className="self-start text-sm font-medium text-[#e5556e]"
+              className="self-start text-sm font-medium text-primary"
             >
               Duplicate to another time
             </button>
@@ -410,6 +486,49 @@ export function EntryForm({
           onCancel={() => setDuplicating(false)}
           onConfirm={(d, t) => handleDuplicate(d, t)}
         />
+      )}
+
+      {confirmFuture && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4"
+          onClick={(e) => {
+            e.stopPropagation()
+            setConfirmFuture(false)
+          }}
+        >
+          <div
+            className="w-full max-w-xs rounded-2xl p-4"
+            style={{ backgroundColor: COLORS.sheetBg }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="mb-2 text-base font-semibold text-neutral-800">
+              Are you sure you wanna save this entry? 👀
+            </h2>
+            <p className="mb-4 text-sm text-neutral-600">
+              This is in the future - have you time travelled babe? If so, give me
+              gambling tips xxx
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmFuture(false)}
+                className="rounded-lg px-4 py-1.5 text-sm text-neutral-600"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmFuture(false)
+                  doSave()
+                }}
+                className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

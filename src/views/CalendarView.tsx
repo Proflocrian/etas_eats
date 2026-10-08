@@ -13,18 +13,24 @@ import {
   toDateKey,
   weekDays,
 } from '../lib/calendar'
-import { ENTRY_TYPE_META } from '../lib/entryTypes'
+import {
+  COLORS,
+  ENTRY_TYPE_EMOJI,
+  ENTRY_TYPE_META,
+  ENTRY_TYPE_ORDER,
+  FILTER_CHIP_META,
+  PILL_BG_COLOUR,
+  PILL_BORDER_IDLE,
+  PILL_CLASS,
+} from '../lib/theme'
 
 type ViewMode = 'week' | 'day'
 
-// Filter chip order requested: All | Food | Symptom | Activity.
-const FILTER_ORDER: EntryTypeEnum[] = ['food', 'symptom', 'activity']
-
-const TYPE_EMOJI: Record<EntryTypeEnum, string> = {
-  food: '🍴',
-  symptom: '🤒',
-  activity: '🏋🏼‍♀️',
-}
+// Remembered across tab switches (the view remounts) within a session.
+let savedAnchor: Date | null = null
+let savedViewMode: ViewMode = 'week'
+let savedActiveTypes: Set<EntryTypeEnum> = new Set()
+let savedOnlyTriggers = false
 
 function visibleDays(anchor: Date, mode: ViewMode): Date[] {
   return mode === 'week' ? weekDays(anchor) : [anchor]
@@ -34,14 +40,14 @@ function FilterChip({
   label,
   name,
   active,
-  activeStyle,
+  accent,
   onClick,
   className = '',
 }: {
   label: string
   name?: string // accessible name when the label is an emoji
   active: boolean
-  activeStyle: React.CSSProperties
+  accent: string // selected border colour
   onClick: () => void
   className?: string
 }) {
@@ -52,10 +58,13 @@ function FilterChip({
       aria-pressed={active}
       aria-label={name ?? label}
       title={name}
-      className={`min-w-[2.5rem] shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1 text-center text-sm ${className} ${
-        active ? 'border-transparent font-semibold' : 'border-neutral-300 text-neutral-500'
+      className={`${PILL_CLASS} min-w-[2.5rem] whitespace-nowrap text-center text-neutral-600 ${className} ${
+        active ? 'font-semibold' : ''
       }`}
-      style={active ? activeStyle : undefined}
+      style={{
+        backgroundColor: PILL_BG_COLOUR,
+        borderColor: active ? accent : PILL_BORDER_IDLE,
+      }}
     >
       {label}
     </button>
@@ -63,12 +72,15 @@ function FilterChip({
 }
 
 export function CalendarView() {
-  // `anchor` is any date within the visible range.
-  const [anchor, setAnchor] = useState<Date>(() => new Date())
-  const [viewMode, setViewMode] = useState<ViewMode>('week')
+  // `anchor` is any date within the visible range. State is seeded from the
+  // session-remembered values so it survives tab switches.
+  const [anchor, setAnchor] = useState<Date>(() => savedAnchor ?? new Date())
+  const [viewMode, setViewMode] = useState<ViewMode>(() => savedViewMode)
   // Empty set means "All types".
-  const [activeTypes, setActiveTypes] = useState<Set<EntryTypeEnum>>(new Set())
-  const [onlyTriggers, setOnlyTriggers] = useState(false)
+  const [activeTypes, setActiveTypes] = useState<Set<EntryTypeEnum>>(
+    () => savedActiveTypes,
+  )
+  const [onlyTriggers, setOnlyTriggers] = useState(() => savedOnlyTriggers)
   const [entriesByDate, setEntriesByDate] = useState<Record<string, Entry[]>>({})
   const [creating, setCreating] = useState<{ dateKey: string; time: string } | null>(
     null,
@@ -79,6 +91,14 @@ export function CalendarView() {
     const keys = visibleDays(anchor, viewMode).map(toDateKey)
     setEntriesByDate(await getEntriesByDates(keys))
   }, [anchor, viewMode])
+
+  // Remember the view state across tab switches (the view remounts).
+  useEffect(() => {
+    savedAnchor = anchor
+    savedViewMode = viewMode
+    savedActiveTypes = activeTypes
+    savedOnlyTriggers = onlyTriggers
+  }, [anchor, viewMode, activeTypes, onlyTriggers])
 
   // Load from IndexedDB (an external store) on mount and whenever the range
   // changes. setState lands after an await, not synchronously.
@@ -182,55 +202,67 @@ export function CalendarView() {
           >
             Today
           </button>
-          <div className="flex shrink-0 rounded-lg border border-neutral-300 p-0.5 text-sm">
+          <button
+            type="button"
+            onClick={() => setViewMode(viewMode === 'week' ? 'day' : 'week')}
+            aria-label={
+              viewMode === 'week' ? 'Switch to Day view' : 'Switch to Week view'
+            }
+            className="relative flex w-28 shrink-0 overflow-hidden rounded-lg border border-neutral-300 text-sm"
+          >
+            {/* Sliding highlight - slides to the active option. */}
+            <span
+              aria-hidden="true"
+              className="absolute inset-y-0 left-0 w-1/2 transition-transform duration-200 ease-out"
+              style={{
+                transform: viewMode === 'day' ? 'translateX(100%)' : 'translateX(0)',
+                backgroundColor: COLORS.primaryAction,
+              }}
+            />
             {(['week', 'day'] as ViewMode[]).map((m) => (
-              <button
+              <span
                 key={m}
-                type="button"
-                onClick={() => setViewMode(m)}
-                className={`rounded-md px-2.5 py-1 ${
-                  viewMode === m
-                    ? 'bg-[#e5556e] font-semibold text-white'
-                    : 'text-neutral-600'
+                className={`relative z-10 flex-1 py-1 text-center ${
+                  viewMode === m ? 'font-semibold text-white' : 'text-neutral-600'
                 }`}
               >
                 {m === 'week' ? 'Week' : 'Day'}
-              </button>
+              </span>
             ))}
-          </div>
+          </button>
         </div>
       </div>
 
       {/* Row 2: filters (full width, scrollable) */}
       <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto px-3 pb-2">
         <FilterChip
-          label="All"
-          name="All types"
+          label={FILTER_CHIP_META.all.display}
+          name={FILTER_CHIP_META.all.label}
           className="ml-auto"
           active={activeTypes.size === 0}
-          activeStyle={{ backgroundColor: '#404040', color: '#fff' }}
+          accent={FILTER_CHIP_META.all.border}
           onClick={() => setActiveTypes(new Set())}
         />
         <span className="mx-0.5 w-px shrink-0 self-stretch bg-neutral-200" />
-        {FILTER_ORDER.map((t) => {
+        {ENTRY_TYPE_ORDER.map((t) => {
           const meta = ENTRY_TYPE_META[t]
           return (
             <FilterChip
               key={t}
-              label={TYPE_EMOJI[t]}
+              label={ENTRY_TYPE_EMOJI[t]}
               name={meta.label}
               active={activeTypes.has(t)}
-              activeStyle={{ backgroundColor: meta.border, color: '#fff' }}
+              accent={meta.border}
               onClick={() => toggleType(t)}
             />
           )
         })}
         <span className="mx-0.5 w-px shrink-0 self-stretch bg-neutral-200" />
         <FilterChip
-          label="🚩"
-          name="Only triggers"
+          label={FILTER_CHIP_META.trigger.display}
+          name={FILTER_CHIP_META.trigger.label}
           active={onlyTriggers}
-          activeStyle={{ backgroundColor: '#e5556e', color: '#fff' }}
+          accent={FILTER_CHIP_META.trigger.border}
           onClick={() => setOnlyTriggers((v) => !v)}
         />
       </div>
@@ -240,6 +272,7 @@ export function CalendarView() {
         entriesByDate={visibleByDate}
         onSlotTap={(dateKey, time) => setCreating({ dateKey, time })}
         onEntryTap={(entry) => setEditing(entry)}
+        onStep={step}
       />
 
       {/* Floating add button - create at a chosen date/time. */}
@@ -247,9 +280,22 @@ export function CalendarView() {
         type="button"
         onClick={openCreate}
         aria-label="Add entry"
-        className="absolute bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#e5556e] text-3xl leading-none text-white shadow-lg active:brightness-95"
+        className="absolute bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg active:brightness-95"
+        style={{ backgroundColor: COLORS.fabBg }}
       >
-        +
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
       </button>
 
       {creating && (

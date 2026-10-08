@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { TriggerableEntry } from '../db/db'
 import { getPossibleTriggers } from '../db/entries'
-import { ENTRY_TYPE_META, entryTitle } from '../lib/entryTypes'
+import { entryTitle } from '../lib/entryTypes'
+import { ENTRY_TYPE_META } from '../lib/theme'
 import { EntryDetailSheet } from './EntryDetailSheet'
 
 export function TriggerList() {

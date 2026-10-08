@@ -18,7 +18,6 @@ import {
 const sample: NewEntry = {
   date: '06-10-2026',
   entryType: 'food',
-  foodType: 'meal',
   time: '13:00',
   food: 'Pasta',
   quantity: '1 bowl',
@@ -146,7 +145,7 @@ describe('entries data layer', () => {
 
   it('getEntriesBefore returns food/activity before a datetime, closest first', async () => {
     await addEntry({ ...sample, time: '08:00', food: 'Breakfast' })
-    await addEntry({ ...sample, time: '10:00', foodType: 'snack', food: 'Snack' })
+    await addEntry({ ...sample, time: '10:00', food: 'Snack' })
     await addEntry({
       date: '06-10-2026',
       time: '11:00',

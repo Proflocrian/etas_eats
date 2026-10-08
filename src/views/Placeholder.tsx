@@ -21,7 +21,7 @@ export function Placeholder({
       <span className="text-5xl" role="img" aria-label={title}>
         {emoji}
       </span>
-      <h1 className="text-2xl font-bold text-[#e5556e]">{title}</h1>
+      <h1 className="text-2xl font-bold text-primary">{title}</h1>
       <p className="max-w-xs text-neutral-600">{message}</p>
     </div>
   )
