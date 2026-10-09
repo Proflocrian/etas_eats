@@ -4,7 +4,10 @@ import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // GitHub Pages serves this project site from /etas_eats/. Only the production
+  // build needs that prefix; `pnpm dev` stays at / so the LAN dev URL is unchanged.
+  base: command === 'build' ? '/etas_eats/' : '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -19,7 +22,9 @@ export default defineConfig({
         background_color: '#fff8f3',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        // Relative so they resolve under the deploy base (/etas_eats/) and at / in dev.
+        start_url: '.',
+        scope: '.',
         icons: [
           {
             src: 'favicon.svg',
@@ -42,4 +47,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+}))
