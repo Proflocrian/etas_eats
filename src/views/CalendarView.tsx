@@ -223,7 +223,7 @@ export function CalendarView() {
       </div>
 
       {/* Row 2: filters (full width, scrollable) */}
-      <div className="relative flex shrink-0 items-center gap-1.5 overflow-x-auto px-3 pb-2">
+      <div className="relative flex shrink-0 items-center gap-1.5 overflow-x-auto px-3 pb-2 text-sm">
         <FilterChip
           label={FILTER_CHIP_META.all.display}
           name={FILTER_CHIP_META.all.label}

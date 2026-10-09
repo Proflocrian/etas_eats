@@ -1,4 +1,4 @@
-import { PILL_BG_COLOUR, PILL_BORDER_IDLE, PILL_CLASS } from '../lib/theme'
+import { PILL_BG_COLOUR, PILL_BORDER_IDLE } from '../lib/theme'
 
 export function FilterChip({
   label,
@@ -22,7 +22,7 @@ export function FilterChip({
       aria-pressed={active}
       aria-label={name ?? label}
       title={name}
-      className={`${PILL_CLASS} tap min-w-[2.5rem] whitespace-nowrap text-center text-text-muted ${className} ${
+      className={`tap min-w-[2.5rem] shrink-0 whitespace-nowrap rounded-full border-2 px-2.5 py-1 text-center text-text-muted ${className} ${
         active ? 'font-bold' : ''
       }`}
       style={{

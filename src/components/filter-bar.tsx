@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { type Period, PERIOD_OPTIONS } from '../lib/period'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { FilterChip } from './FilterChip'
@@ -20,14 +21,16 @@ export function PeriodRow({
 }) {
   return (
     <FilterRow>
-      {PERIOD_OPTIONS.map((o) => (
-        <FilterChip
-          key={o.id}
-          label={o.label}
-          active={value === o.id}
-          accent={COLORS.primaryAction}
-          onClick={() => onChange(o.id)}
-        />
+      {PERIOD_OPTIONS.map((o, i) => (
+        <Fragment key={o.id}>
+          {i === 1 && <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />}
+          <FilterChip
+            label={o.label}
+            active={value === o.id}
+            accent={COLORS.primaryAction}
+            onClick={() => onChange(o.id)}
+          />
+        </Fragment>
       ))}
     </FilterRow>
   )
@@ -52,7 +55,7 @@ export function FilterCard({ children }: { children: React.ReactNode }) {
           Filters
         </h2>
         <FilterDivider />
-        {children}
+        <div className="text-xs">{children}</div>
       </div>
     </div>
   )
