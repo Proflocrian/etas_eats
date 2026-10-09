@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { BottomNav, type Tab } from './components/BottomNav'
+import { LockScreen } from './components/LockScreen'
 import { Sparkles } from './components/decor'
+import { isUnlocked } from './lib/lock'
 import { useDecor } from './lib/theme-context'
 import { AboutView } from './views/AboutView'
 import { AnalysisView } from './views/AnalysisView'
@@ -27,6 +29,7 @@ const BG_SPARKLES = [
 function App() {
   // Always launch on the Calendar (home); tab is not persisted across launches.
   const [tab, setTab] = useState<Tab>('calendar')
+  const [unlocked, setUnlocked] = useState(() => isUnlocked())
   const decor = useDecor()
 
   useEffect(() => {
@@ -55,6 +58,10 @@ function App() {
     if (next === tab) return
     window.history.pushState({ tab: next }, '')
     setTab(next)
+  }
+
+  if (!unlocked) {
+    return <LockScreen onUnlock={() => setUnlocked(true)} />
   }
 
   return (

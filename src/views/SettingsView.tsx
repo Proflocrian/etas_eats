@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { clearAllEntries, getAllEntries } from '../db/entries'
 import { entriesToCsv } from '../lib/csv'
+import { setUnlocked } from '../lib/lock'
 import { COLORS, type Palette, type ThemeId, THEMES } from '../lib/theme'
 import { useTheme } from '../lib/theme-context'
 import { HeartClock, HeartWatermark, Sparkles, Star, WaveAccent } from '../components/decor'
@@ -398,8 +399,28 @@ export function SettingsView() {
         >
           <button
             type="button"
-            onClick={() => setConfirmDelete(true)}
+            onClick={() => {
+              setUnlocked(false)
+              window.location.reload()
+            }}
             className="flex w-full items-center justify-between px-4 py-3 text-left"
+          >
+            <span className="flex items-center gap-3">
+              <span className="text-xl" aria-hidden="true">
+                🎫
+              </span>
+              <span className="text-base font-semibold text-danger-text">
+                Remove Attached Vouchers
+              </span>
+            </span>
+            <span className="text-danger-text opacity-60" aria-hidden="true">
+              ›
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            className="flex w-full items-center justify-between border-t border-danger-border px-4 py-3 text-left"
           >
             <span className="flex items-center gap-3">
               <span className="text-xl" aria-hidden="true">
@@ -427,7 +448,10 @@ export function SettingsView() {
             </>
           }
           confirmLabel="Yes"
-          onConfirm={() => clearAllEntries()}
+          onConfirm={async () => {
+            await clearAllEntries()
+            setUnlocked(false)
+          }}
           onClose={() => setConfirmDelete(false)}
         />
       )}
