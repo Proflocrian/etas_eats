@@ -453,3 +453,58 @@ navigation; and persisted calendar view state + 06:30 open position.
 
 The codebase is small, typed, and tested - prefer extending the DAL + `lib/` helpers (with
 tests) and keeping view logic thin, and route all colours through `lib/theme.ts`.
+
+## Deployment + installed-PWA work (started 2026-10-09)
+
+**GitHub Pages deploy is set up.** Repo: `github.com/Proflocrian/etas_eats`.
+- `vite.config.ts`: `base` is `/etas_eats/` on `build` only (dev stays at `/`, so the LAN
+  dev URL is unchanged). Manifest `start_url`/`scope` are relative (`.`) so they resolve
+  under the base.
+- `.github/workflows/deploy.yml`: builds with pnpm + deploys to Pages. **Trigger is push to
+  `v0.1`** (the owner's working branch) - change to `main` later if desired. The
+  `github-pages` environment's "Deployment branches" rule had to be widened to allow `v0.1`.
+- Live at `https://proflocrian.github.io/etas_eats/`. Install from THAT https URL (not the
+  LAN http one): over HTTPS the service worker registers, so relaunches pull fresh code
+  (one extra relaunch may be needed for a new SW to activate). Over plain http the SW does
+  NOT register (non-secure context) and the installed app serves a stale snapshot - that
+  caused a lot of "nothing changed" confusion; always test via the Pages URL.
+- **Verify-fresh-code marker:** the Settings `<h1>` temporarily reads "Settings - <tag>"
+  (e.g. "Settings - nav-bottom"); bump the tag each push so you can confirm the installed
+  app updated before judging a fix. REMOVE the "- <tag>" suffix once the iOS issues are done.
+
+### Full-screen / standalone config (in `index.html`)
+- `viewport-fit=cover`, `apple-mobile-web-app-capable=yes`,
+  `apple-mobile-web-app-status-bar-style=black-translucent` (needed for content to go behind
+  the status bar; forces WHITE status-bar text - fine on 11:11, low-contrast on the light
+  themes; iOS can't theme it per-theme). The `.webclip` plist confirmed it installs as a REAL
+  standalone web app (not a bookmark); "Delete Bookmark" wording is just iOS being loose.
+
+### OPEN ISSUES (iOS 27 simulator, installed via Pages)
+1. **Bottom nav position.** iOS standalone gives `fixed`/`vh`/`dvh`/`100%` the *safe*
+   viewport at the BOTTOM (stops above the home indicator) even though it reaches the true
+   TOP (leopard paints behind the status bar). History of attempts: `100dvh`, `#root` fixed,
+   App `h-full`, App `fixed inset-0` - all left the nav floating ~34px up with a strip below.
+   **Current approach (as of this edit, under test):** App shell is
+   `position: fixed; inset-x-0; top-0; style={{ bottom: calc(env(safe-area-inset-bottom)*-1) }}`
+   to extend past the safe viewport to the true bottom; the nav has NO `paddingBottom` (it
+   was double-counting); and `body { background: var(--nav-strip-bg) }` paints the
+   home-indicator strip in the nav's real background (print/velour/solid, set per theme in
+   `applyTheme`) so the strip matches the nav. If the nav ends up CUT OFF at the bottom, the
+   `bottom: -env` hypothesis is wrong (fixed was already reaching the true bottom) and it
+   should be reverted. A lime-background diagnostic build is the fallback to measure exactly
+   what fills the strip.
+2. **Blurry top on deployed iOS.** The leopard behind/around the status bar looks blurry/soft
+   on-device (not in any of our CSS - no blur is applied to the calendar). Leading suspicion:
+   the `black-translucent` status-bar path (flagged "Legacy" in the webclip plist) on iOS
+   26/27. Not yet diagnosed; need to confirm whether it's just the thin status-bar band or
+   the whole header, and possibly A/B test dropping `black-translucent` (risks losing the
+   top full-bleed). NOT yet started.
+
+### Other UI changes landed 2026-10-09 (post theme redesign)
+- Calendar: condensed two-month label (`Sep-Oct 26`), slightly smaller header font, uppercase
+  weekday labels matching the date-number weight/colour.
+- Triggers: swipe between the two sub-tabs (one step each way).
+- EntryForm/EntryDetailSheet: device Back closes the open sheet (via `lib/use-back-to-close.ts`
+  - pushes a history entry, pops it on Back/close) instead of switching tabs.
+- Settings: "Etas Eats" theme label styled like the Uber Eats wordmark; Cunty Leopard swatch
+  pill wraps name + palette, faster card glimmer.
