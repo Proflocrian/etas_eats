@@ -1,7 +1,89 @@
 @import 'tailwindcss';
 
+/* Theme tokens. Each generates Tailwind colour utilities (bg-*, text-*, border-*)
+   that reference the var, so the active theme's runtime overrides (theme.ts
+   applyTheme, set on :root) drive them live. The values here are only the
+   pre-JS fallbacks (default EtasEats theme); applyTheme runs before first paint. */
+@theme {
+  --color-primary: #06C167;
+  --color-on-primary: #000000;
+  --color-text-primary: #000000;
+  --color-text-secondary: #6B6B6B;
+  --color-text-muted: #6B6B6B;
+  --color-divider: #EEEEEE;
+  --color-card-border: #EEEEEE;
+  --color-grid-line: #EBEBEB;
+  --color-grid-line-half: #F6F6F6;
+  --color-grid-col: #F2F2F2;
+  --color-input-bg: #F3F3F3;
+  --color-input-border: #F3F3F3;
+  --color-placeholder: #9E9E9E;
+  --color-switch-track: #F3F3F3;
+  --color-switch-no-bg: #000000;
+  --color-switch-no-text: #FFFFFF;
+  --color-trigger-switch-text: #FFFFFF;
+  --color-segment-active-bg: #000000;
+  --color-segment-active-text: #FFFFFF;
+  --color-danger: #C21500;
+  --color-danger-bg: #FFF0EE;
+  --color-danger-text: #C21500;
+  --color-danger-border: #E11900;
+}
+
+/* Heading font. Themes with a display font (leopard Bodoni, 2000s Yellowtail)
+   apply it via this class; others fall back to the body font, so it's a no-op. */
+.font-display {
+  font-family: var(--app-font-display, inherit);
+  font-style: var(--app-font-display-style, normal);
+}
+
+/* Themed placeholder colour for all inputs/textareas in one place. */
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-placeholder);
+}
+
+/* Context override: inside a bottom sheet / dialog, a handful of tokens switch to
+   their on-sheet values (needed by dark themes like 11:11, whose light frosted
+   sheet needs dark ink + light controls). applyTheme always sets the matching
+   *-sheet vars (= the theme's onSheet override, or the base value), so these are
+   never invalid and themes without an override are unaffected. */
+.sheet-scope {
+  --color-text-primary: var(--color-text-primary-sheet);
+  --color-text-secondary: var(--color-text-secondary-sheet);
+  --color-text-muted: var(--color-text-muted-sheet);
+  --color-pill-bg: var(--color-pill-bg-sheet);
+  --color-pill-border-idle: var(--color-pill-border-idle-sheet);
+  --color-input-bg: var(--color-input-bg-sheet);
+  --color-input-border: var(--color-input-border-sheet);
+  --color-switch-track: var(--color-switch-track-sheet);
+  --color-switch-no-bg: var(--color-switch-no-bg-sheet);
+  --color-switch-no-text: var(--color-switch-no-text-sheet);
+}
+
+/* 11:11 frosted field panel: sheet content sits on one translucent, blurred panel
+   over the drifting wave, so text stays dark-on-light wherever the wave runs. */
+.tt-sheet-panel {
+  background-color: rgba(245, 248, 251, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 8px 30px rgba(10, 30, 60, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
 :root {
   color-scheme: light;
+  /* Pre-JS fallbacks for the string-valued treatment tokens (default theme).
+     applyTheme overrides these on :root before first paint. */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.06);
+  --shadow-sheet: 0 -8px 32px rgba(0, 0, 0, 0.14);
+  --shadow-fab: 0 6px 16px rgba(6, 193, 103, 0.32), 0 2px 4px rgba(0, 0, 0, 0.1);
+  --color-scrim: rgba(0, 0, 0, 0.4);
+  /* Save button fill/text - defaults to the theme's primary; a theme can override
+     (e.g. leopard sets gold-metal via treatments). */
+  --save-bg: var(--color-primary);
+  --save-text: var(--color-on-primary);
 }
 
 html,
@@ -10,14 +92,356 @@ body,
   height: 100%;
 }
 
+/* ---- Motion (Phase 3). Reusable primitives; all transform/opacity only. ---- */
+
+/* Press feedback: tappable controls dip on press; the FAB dips further. */
+.tap {
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tap:active {
+  transform: scale(0.96);
+}
+.tap-fab:active {
+  transform: scale(0.92);
+}
+
+/* Bottom sheets slide up on open. */
+@keyframes sheet-enter {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.sheet-enter {
+  animation: sheet-enter 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The scrim fades in behind an opening sheet/modal. */
+@keyframes scrim-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.scrim-fade {
+  animation: scrim-fade 0.24s ease;
+}
+
+/* ---- Cunty Leopard theme motion (gated by the cl-* classes, added only on that
+   theme). All transform/opacity; neutralized by the reduced-motion guard below. ---- */
+
+/* M1 - gold sheen sweeping across the Save button while a sheet is open. */
+@keyframes cl-sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  35%,
+  100% {
+    transform: translateX(240%);
+  }
+}
+.cl-save {
+  position: relative;
+  overflow: hidden;
+}
+.cl-save::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 50%;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent, rgba(255, 250, 228, 0.9), transparent);
+  animation: cl-sheen 4.5s ease-in-out infinite;
+}
+
+/* M2 - a gold ring pulses out of the FAB a few times after the calendar mounts. */
+@keyframes cl-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  70%,
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+.cl-fab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #e6c474;
+  pointer-events: none;
+  animation: cl-ring 3.6s ease-out 3;
+}
+
+/* M3 - a sheen passes across the leopard band once on sheet open; loops slowly on
+   the selected theme card. */
+@keyframes cl-band {
+  from {
+    transform: translateX(-140%);
+  }
+  to {
+    transform: translateX(420%);
+  }
+}
+.cl-band {
+  position: relative;
+  overflow: hidden;
+}
+.cl-band::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 244, 214, 0.55), transparent);
+  animation: cl-band 1.4s 0.3s ease-out 1 both;
+}
+.cl-theme-card {
+  position: relative;
+  overflow: hidden;
+}
+/* Theme-card glimmer: a quick sweep, then a rest until the next cycle - so the
+   sheen moves fast but no more often (same ~6s interval). */
+@keyframes cl-card-sheen {
+  0% {
+    transform: translateX(-140%);
+  }
+  18%,
+  100% {
+    transform: translateX(420%);
+  }
+}
+.cl-theme-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 244, 214, 0.55), transparent);
+  animation: cl-card-sheen 6s ease-out infinite;
+}
+
+/* ---- Trashy 2000s theme motion. ---- */
+
+/* Holographic sheet band: the gradient drifts slowly. */
+@keyframes tt-sheen {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
+}
+.tt-holo-band {
+  background-size: 300% 100%;
+  animation: tt-sheen 7s ease-in-out infinite alternate;
+}
+
+/* A white band shimmers across the gem FAB every few seconds. */
+@keyframes tt-shimmer {
+  0%,
+  72% {
+    transform: translateX(-140%) rotate(20deg);
+  }
+  100% {
+    transform: translateX(240%) rotate(20deg);
+  }
+}
+.tt-fab-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 0;
+  width: 40%;
+  height: 140%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: tt-shimmer 6s ease-in-out infinite;
+}
+
+/* Y2K star twinkle (today marker): scales + rotates in and out. */
+@keyframes tt-twinkle {
+  0%,
+  100% {
+    transform: scale(0.2) rotate(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1) rotate(45deg);
+    opacity: 1;
+  }
+}
+.tt-twinkle {
+  animation: tt-twinkle 3.2s ease-in-out infinite;
+}
+
+/* Bigger, more frequent twinkle - the 2000s background star field. */
+@keyframes tt-twinkle-lg {
+  0%,
+  100% {
+    transform: scale(0.3) rotate(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.35) rotate(45deg);
+    opacity: 1;
+  }
+}
+.tt-twinkle-lg {
+  animation: tt-twinkle-lg 2.1s ease-in-out infinite;
+}
+
+/* The star on the selected nav tab pops in on tab change. */
+@keyframes tt-pop {
+  0% {
+    transform: scale(0);
+  }
+  60% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+/* A gentle ongoing twinkle (nav star keeps sparkling after it pops in). */
+@keyframes tt-sparkle {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.28);
+    opacity: 1;
+  }
+}
+.tt-nav-star {
+  animation:
+    tt-pop 0.5s ease-out both,
+    tt-sparkle 2.2s 0.5s ease-in-out infinite;
+}
+
+/* 2000s rhinestone Save: a pink glow plus an inset dashed white ring. */
+.tt-save {
+  position: relative;
+  box-shadow:
+    0 0 8px rgba(224, 0, 122, 0.4),
+    0 2px 5px rgba(224, 0, 122, 0.32);
+}
+.tt-save::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+}
+
+
+/* ---- 11:11 theme motion. ---- */
+
+/* a. Wave drift: one 480px tile per 140-160s (set inline). The oversized inner is
+   rotated -14deg for a diagonal flow; moving background-position is cheap. */
+@keyframes tt-drift {
+  /* Offset start by two-thirds of a tile so the opening frame sits further along
+     (seamless loop either way; -480px advances exactly one tile). */
+  from {
+    background-position: -320px 0;
+  }
+  to {
+    background-position: -800px 0;
+  }
+}
+.tt-wave {
+  transform: rotate(-14deg) translateZ(0);
+  backface-visibility: hidden;
+  animation-name: tt-drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* b. Heart breath: the sheet heart-clock glows gently, 6s. */
+@keyframes tt-beat {
+  0%,
+  100% {
+    opacity: 0.82;
+    filter: drop-shadow(0 0 0 rgba(168, 216, 234, 0));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(168, 216, 234, 0.85));
+  }
+}
+.tt-heart-pulse {
+  animation: tt-beat 6s ease-in-out infinite;
+}
+
+/* c. FAB ripple: a 🩵 ring pulses out on an ~11s cycle (brief ripple ~0-29%, then
+   rests). Always on - a nod to 11, not time-of-day dependent. */
+@keyframes tt-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  29% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+.tt-fab-ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #a8d8ea;
+  pointer-events: none;
+  animation: tt-ring 11s ease-out infinite;
+}
+
+/* Pause the wave drift while the app is backgrounded, to save battery. */
+.app-hidden .tt-wave {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* App-like: no pull-to-refresh / scroll chaining when dragging at the edges. */
+html,
+body {
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
-  background-color: #fff8f3;
+  /* The page canvas shows in the home-indicator strip on iOS standalone, so paint it
+     the active nav background (print/velour/solid per theme) so the strip matches the
+     nav. On flat themes this equals the app bg. */
+  background: var(--nav-strip-bg, #fff8f3);
   -webkit-font-smoothing: antialiased;
-  font-family:
+  font-family: var(
+    --app-font,
     system-ui,
     -apple-system,
     'Segoe UI',
     Roboto,
-    sans-serif;
+    sans-serif
+  );
 }

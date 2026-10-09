@@ -1,3 +1,17 @@
+# Current Instructions
+
+Okay cool - and can we now try implement notifications? 
+
+I just want one type of notification; 
+
+`EtasEats: Hey babe, log your eating habits 👀`
+
+And I want to send this out twice / day, once at 11:11am and once at 7:00pm. I want these two times saved as constants (so I can quickly edit them to test)
+
+
+---
+
+
 # Food Diary PWA — EtasEats
 
 ## Overview
