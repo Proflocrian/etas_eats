@@ -570,6 +570,9 @@ export function applyTheme(id: ThemeId): void {
   root.style.setProperty('--app-font', theme.font)
   root.style.setProperty('--app-font-display', theme.fontDisplay ?? theme.font)
   root.style.setProperty('--app-font-display-style', theme.fontDisplayStyle ?? 'normal')
+  // Colour for the home-indicator strip under the nav (safety net in App.tsx). The
+  // nav's solid ground colour blends with its print/velour where those apply.
+  root.style.setProperty('--nav-bottom-fill', theme.palette.navBg)
 }
 
 // Persisted theme choice (localStorage; falls back to default if unavailable).

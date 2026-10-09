@@ -57,10 +57,12 @@ function App() {
   }
 
   return (
-    // #root is pinned full-viewport (position:fixed/inset-0 in index.css); the shell
-    // fills it with height:100% (NOT vh/dvh, which give the short "safe" viewport in
-    // iOS standalone) so the bottom nav reaches the true bottom edge.
-    <div className="flex h-full w-full flex-col">
+    // The shell is pinned with position:fixed/inset-0, NOT a height unit: iOS
+    // standalone resolves vh/dvh/height:100% to the short "safe" viewport (stopping
+    // above the home indicator), but a fixed inset-0 box fills the TRUE full screen
+    // (the same mechanism the background layer uses), so the nav reaches the real
+    // bottom edge and its safe-area padding fills the home-indicator strip.
+    <div className="fixed inset-0 flex flex-col">
       {/* Fixed app-background layer. Flat themes leave --app-bg-layer unset, so the
           body's app-bg colour shows; patterned themes (e.g. leopard) paint a print
           here, behind all content. iOS ignores background-attachment:fixed, hence a
@@ -80,6 +82,19 @@ function App() {
           <Sparkles stars={BG_SPARKLES} color="#FFFFFF" big />
         </div>
       )}
+      {/* Safety net for the home-indicator strip: a fixed inset-0 layer (reaches the
+          true bottom) whose gradient paints only the bottom safe-area, in the active
+          nav's colour. The nav covers it when the layout is correct; if iOS ever
+          shorts the height, this fills the gap so the nav never looks like it floats. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0"
+        style={{
+          zIndex: -1,
+          background:
+            'linear-gradient(to top, var(--nav-bottom-fill) env(safe-area-inset-bottom), transparent env(safe-area-inset-bottom))',
+        }}
+      />
       {/* min-h-0 lets the active view own its own vertical scroll. */}
       <main className="min-h-0 flex-1 overflow-hidden">
         {tab === 'calendar' && <CalendarView />}
