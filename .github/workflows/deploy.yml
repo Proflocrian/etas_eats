@@ -1,9 +1,9 @@
 name: Deploy to GitHub Pages
 
-# Deploys on every push to main. Use the "Run workflow" button for a manual deploy.
+# Deploys on every push to v0.1. Use the "Run workflow" button for a manual deploy.
 on:
   push:
-    branches: [main]
+    branches: [v0.1]
   workflow_dispatch:
 
 # Permissions the deploy needs.
