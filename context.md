@@ -1,10 +1,11 @@
 # Current Instructions
 
-Sick, I'll test that now. 
+Sick. 
 
-Next feature is; 
+Now, lets add an `About This App` button, which just says `t=About This App`, `b=Your boyfriend just really loves you. Xxxx`
 
-If she's on the SettingsView, we track which themes she switches to, if she has tried every theme (without changing tab - since we wont store this state), then we create a modal popup saying; `t=Classic Greta, b=Can't make up your mind can you pretty girl? 👀` 
+Then a `GERD Wiki` button, which opens a simple GerdView, that just has some basic FAQs, common trigger foods and activity and some (usually good food and drnks) - this shouldnt be _too_ long. But give some basic info. 
+
 
 ---
 
