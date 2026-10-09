@@ -21,8 +21,8 @@ const SWATCH_KEYS: (keyof Palette)[] = [
 
 const LANGUAGES: { id: string; label: string; flag: string }[] = [
   { id: 'en', label: 'English', flag: '🇬🇧' },
-  { id: 'it', label: 'Italian', flag: '🇮🇹' },
-  { id: 'nl', label: 'Dutch', flag: '🇳🇱' },
+  { id: 'it', label: 'Italiano', flag: '🇮🇹' },
+  { id: 'nl', label: 'Nederlands (jij moet practice)', flag: '🇳🇱' },
   { id: 'zh', label: '中國人', flag: '🇨🇳' },
 ]
 
