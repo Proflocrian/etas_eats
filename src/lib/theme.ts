@@ -572,8 +572,8 @@ export function applyTheme(id: ThemeId): void {
   root.style.setProperty('--app-font-display-style', theme.fontDisplayStyle ?? 'normal')
   // The home-indicator strip sits outside the web viewport on iOS standalone and is
   // painted from the body background's solid colour (image/gradient layers are dropped
-  // there). Black on every theme reads as a natural device edge.
-  root.style.setProperty('--nav-strip-bg', '#000')
+  // there). Use each theme's flat navBg so the strip matches the nav's base tone.
+  root.style.setProperty('--nav-strip-bg', theme.palette.navBg)
 }
 
 // Persisted theme choice (localStorage; falls back to default if unavailable).
@@ -652,7 +652,8 @@ export const FILTER_CHIP_META: Record<'all' | 'trigger', ChipMeta> = {
 // Bottom-nav tab -> emoji.
 export const TAB_EMOJI: Record<Tab, string> = {
   calendar: '🗓️',
-  triggers: '⚠️',
+  tracker: '📋',
+  analysis: '🔬',
   settings: '⚙️',
   about: '❓',
 }

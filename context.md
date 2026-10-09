@@ -1,3 +1,15 @@
+# Current Instructions
+
+The 11:11 theme has a "highlighted" column in the CalendarGrid for today, none of the other themes do - can you make it across all themes and make this a themePalette colour (eg todayCalendarHighlightColour or whatever) that gets used generically - hence, you might even need to rewrite a little bit of the 11:11 theme to make that work like the rest too. For the other themes, come up with the colour yourself using common sense.
+
+Likewise,  a few small changes at once, for the BottomNav; 
+
+- Lets remove the text from the icons (lets just keep the emoji)
+- Slightly bigger change lets rename the `TriggersView` -> `AnalysisView`, updating any variable /file names where appropriate, likewise, lets swap out the emoji for this one `🔬`
+- Lets add a new page, called `TrackerView`, with the emoji `📋`
+- Let's make the whole NavBar slightly smaller (in terms of height)
+
+
 # Food Diary PWA — EtasEats
 
 ## Overview

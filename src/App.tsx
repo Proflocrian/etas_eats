@@ -3,9 +3,10 @@ import { BottomNav, type Tab } from './components/BottomNav'
 import { Sparkles } from './components/decor'
 import { useDecor } from './lib/theme-context'
 import { AboutView } from './views/AboutView'
+import { AnalysisView } from './views/AnalysisView'
 import { CalendarView } from './views/CalendarView'
 import { SettingsView } from './views/SettingsView'
-import { TriggersView } from './views/TriggersView'
+import { TrackerView } from './views/TrackerView'
 
 // 2000s background glimmer: stars scattered across the screen, twinkling in place.
 const BG_SPARKLES = [
@@ -80,7 +81,8 @@ function App() {
       {/* min-h-0 lets the active view own its own vertical scroll. */}
       <main className="min-h-0 flex-1 overflow-hidden">
         {tab === 'calendar' && <CalendarView />}
-        {tab === 'triggers' && <TriggersView />}
+        {tab === 'tracker' && <TrackerView />}
+        {tab === 'analysis' && <AnalysisView />}
         {tab === 'settings' && <SettingsView />}
         {tab === 'about' && <AboutView />}
       </main>

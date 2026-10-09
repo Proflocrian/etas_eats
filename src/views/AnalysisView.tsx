@@ -15,7 +15,7 @@ const TABS: { id: SubTab; emoji: string; label: string }[] = [
   { id: 'list', emoji: '🚩', label: 'Trigger List' },
 ]
 
-export function TriggersView() {
+export function AnalysisView() {
   const [tab, setTab] = useState<SubTab>('symptoms')
   const decor = useDecor()
 

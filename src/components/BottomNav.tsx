@@ -1,11 +1,12 @@
 import { COLORS, TAB_EMOJI } from '../lib/theme'
 import { useDecor } from '../lib/theme-context'
 
-export type Tab = 'calendar' | 'triggers' | 'settings' | 'about'
+export type Tab = 'calendar' | 'tracker' | 'analysis' | 'settings' | 'about'
 
 const ITEMS: { tab: Tab; label: string }[] = [
   { tab: 'calendar', label: 'Calendar' },
-  { tab: 'triggers', label: 'Triggers' },
+  { tab: 'tracker', label: 'Tracker' },
+  { tab: 'analysis', label: 'Analysis' },
   { tab: 'settings', label: 'Settings' },
   { tab: 'about', label: 'About' },
 ]
@@ -86,10 +87,9 @@ export function BottomNav({
                 </span>
               </>
             )}
-            <span className="text-2xl leading-none" role="img" aria-label={label}>
+            <span className="text-3xl leading-none" role="img" aria-label={label}>
               {TAB_EMOJI[tab]}
             </span>
-            <span className="font-medium">{label}</span>
           </button>
         )
       })}
