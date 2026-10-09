@@ -57,14 +57,7 @@ function App() {
   }
 
   return (
-    // iOS standalone gives fixed layouts the "safe" viewport at the bottom (stopping
-    // above the home indicator), which left the nav floating. Pinning top/left/right
-    // and pushing `bottom` a safe-area-inset BELOW the safe viewport extends the shell
-    // to the TRUE bottom edge, so the nav (last flex child) sits at the real bottom.
-    <div
-      className="fixed inset-x-0 top-0 flex flex-col"
-      style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
-    >
+    <div className="fixed inset-0 flex flex-col">
       {/* Fixed app-background layer. Flat themes leave --app-bg-layer unset, so the
           body's app-bg colour shows; patterned themes (e.g. leopard) paint a print
           here, behind all content. iOS ignores background-attachment:fixed, hence a

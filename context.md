@@ -1,19 +1,3 @@
-# Current Instructions:
-
-Awesome all seems to work!
-
-Nice, it looks better - so progress. 
-
-However, the BottomNav is still _too_ high imo. Look at `screenshots\nav_comparison.png`, the left is the current simulator, and the right is the mockup. I would like the navbar to be as close to the bottom as possible. 
-
-Wrt to `If you want the print to continue into that strip too, I can do that per-theme` - yes, lets do that - that'll also make it look more like the mockup.
-
-Likewise, can you update handover with all the relevant information for this project. Include the current issues we're trying to fix, including the blurry top on deployed iOS. 
-
----
-
-The 11:11 theme has a "highlighted" column in the CalendarGrid for today, none of the other themes do - can you make it across all themes and make this a themePalette colour (eg `todayCalendarHighlightColour` or whatever) that gets used generically - hence, you might even need to rewrite a little bit of the 11:11 theme to make that work like the rest too. For the other themes, come up with the colour yourself using common sense. 
-
 # Food Diary PWA — EtasEats
 
 ## Overview

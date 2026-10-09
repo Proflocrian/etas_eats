@@ -25,6 +25,7 @@ export function BottomNav({
     <nav
       className={`relative flex shrink-0 ${print || velour ? '' : 'border-t border-divider'}`}
       style={{
+        paddingBottom: 'env(safe-area-inset-bottom)',
         background: print
           ? 'var(--leopard-dark)'
           : velour
