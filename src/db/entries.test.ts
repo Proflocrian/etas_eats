@@ -43,11 +43,11 @@ describe('entries data layer', () => {
     const id = await addEntry(sample)
     const before = await getEntry(id)
 
-    await updateEntry(id, { food: 'Risotto', calories: 600 })
+    await updateEntry(id, { food: 'Risotto', quantity: '2 bowls' })
     const after = (await getEntry(id)) as FoodEntry | undefined
 
     expect(after?.food).toBe('Risotto')
-    expect(after?.calories).toBe(600)
+    expect(after?.quantity).toBe('2 bowls')
     expect(after?.createdAt).toBe(before?.createdAt)
     expect(after?.updatedAt).toBeGreaterThanOrEqual(before!.updatedAt)
   })

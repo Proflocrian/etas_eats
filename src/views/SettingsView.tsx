@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { clearAllEntries } from '../db/entries'
+import { clearAllEntries, getAllEntries } from '../db/entries'
+import { entriesToCsv } from '../lib/csv'
 import { COLORS, type Palette, type ThemeId, THEMES } from '../lib/theme'
 import { useTheme } from '../lib/theme-context'
 import { HeartClock, HeartWatermark, Sparkles, Star, WaveAccent } from '../components/decor'
@@ -48,6 +49,32 @@ export function SettingsView() {
   const [alert, setAlert] = useState<{ title: string; body: React.ReactNode } | null>(
     null,
   )
+
+  async function exportData() {
+    try {
+      const csv = entriesToCsv(await getAllEntries())
+      const file = new File(
+        [`﻿${csv}`],
+        `EtasEats-${new Date().toISOString().slice(0, 10)}.csv`,
+        { type: 'text/csv' },
+      )
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'EtasEats entries' })
+      } else {
+        const url = URL.createObjectURL(file)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = file.name
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    } catch (err) {
+      // Share sheet dismissed (AbortError) is expected; ignore it.
+      if ((err as Error)?.name !== 'AbortError') {
+        setAlert({ title: 'Export failed', body: "Couldn't export your data, sorry babe." })
+      }
+    }
+  }
 
   return (
     <div
@@ -264,6 +291,7 @@ export function SettingsView() {
         >
           <button
             type="button"
+            onClick={exportData}
             className="flex w-full items-center justify-between px-4 py-3 text-left"
           >
             <span className="flex items-center gap-3">
@@ -323,7 +351,7 @@ export function SettingsView() {
                 title: 'Battery Percentage',
                 body: (
                   <>
-                    <em>Probably</em> too - charge it babe so we can call!
+                    <em>Probably</em> too low - charge it, so we can call babe! Xxx
                   </>
                 ),
               })

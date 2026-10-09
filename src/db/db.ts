@@ -26,7 +26,6 @@ export interface FoodEntry extends BaseEntry {
   entryType: 'food'
   food: string // what was eaten / drunk
   quantity?: string // optional free text, e.g. '1 bowl', '200g'
-  calories?: number
   possibleTrigger: boolean // flagged as a possible GERD trigger
 }
 

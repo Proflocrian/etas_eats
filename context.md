@@ -1,8 +1,10 @@
 # Current Instructions
 
-Great!
+Sick, I'll test that now. 
 
-Now for potentially a hard implementation but hopefully not, when she clicks Export Data, this should offer the native `Share to` with options like Gmail, WhatsApp etc, and what it shares is a csv file of all the entries with all the appropriate columns as one big table. Possible?
+Next feature is; 
+
+If she's on the SettingsView, we track which themes she switches to, if she has tried every theme (without changing tab - since we wont store this state), then we create a modal popup saying; `t=Classic Greta, b=Can't make up your mind can you pretty girl? 👀` 
 
 ---
 
