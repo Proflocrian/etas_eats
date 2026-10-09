@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { EntryForm } from '../components/EntryForm'
 import { FilterChip } from '../components/FilterChip'
-import { FilterDivider, FilterRow, PeriodRow } from '../components/filter-bar'
+import { FilterCard, FilterDivider, FilterRow, PeriodRow } from '../components/filter-bar'
 import { TrackerDayCard } from '../components/TrackerDayCard'
 import { HeartWatermark, WaveAccent } from '../components/decor'
 import type { Entry, EntryTypeEnum } from '../db/db'
@@ -97,37 +97,42 @@ export function TrackerView() {
       )}
 
       <div className="relative shrink-0 pt-2">
-        <FilterRow>
-          <FilterChip
-            label={FILTER_CHIP_META.all.display}
-            name={FILTER_CHIP_META.all.label}
-            active={activeTypes.size === 0}
-            accent={FILTER_CHIP_META.all.border}
-            onClick={() => setActiveTypes(new Set())}
-          />
-          <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />
-          {ENTRY_TYPE_ORDER.map((t) => (
+        <FilterCard>
+          <FilterRow>
             <FilterChip
-              key={t}
-              label={ENTRY_TYPE_EMOJI[t]}
-              name={ENTRY_TYPE_META[t].label}
-              active={activeTypes.has(t)}
-              accent={ENTRY_TYPE_META[t].border}
-              onClick={() => toggleType(t)}
+              label={FILTER_CHIP_META.all.display}
+              name={FILTER_CHIP_META.all.label}
+              active={activeTypes.size === 0}
+              accent={FILTER_CHIP_META.all.border}
+              onClick={() => setActiveTypes(new Set())}
             />
-          ))}
-          <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />
-          <FilterChip
-            label={FILTER_CHIP_META.trigger.display}
-            name={FILTER_CHIP_META.trigger.label}
-            active={onlyTriggers}
-            accent={FILTER_CHIP_META.trigger.border}
-            onClick={() => setOnlyTriggers((v) => !v)}
-          />
-        </FilterRow>
-        <FilterDivider />
-        <PeriodRow value={period} onChange={setPeriod} />
-        <FilterDivider />
+            <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />
+            {ENTRY_TYPE_ORDER.map((t) => (
+              <FilterChip
+                key={t}
+                label={ENTRY_TYPE_EMOJI[t]}
+                name={ENTRY_TYPE_META[t].label}
+                active={activeTypes.has(t)}
+                accent={ENTRY_TYPE_META[t].border}
+                onClick={() => toggleType(t)}
+              />
+            ))}
+            <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />
+            <FilterChip
+              label={FILTER_CHIP_META.trigger.display}
+              name={FILTER_CHIP_META.trigger.label}
+              active={onlyTriggers}
+              accent={FILTER_CHIP_META.trigger.border}
+              onClick={() => setOnlyTriggers((v) => !v)}
+            />
+          </FilterRow>
+          <FilterDivider />
+          <PeriodRow value={period} onChange={setPeriod} />
+        </FilterCard>
+        <div
+          className="mx-auto h-[1px] w-3/4"
+          style={{ backgroundColor: ENTRY_TYPE_META.symptom.border }}
+        />
       </div>
 
       <div className="relative min-h-0 flex-1 overflow-y-auto">
@@ -136,7 +141,7 @@ export function TrackerView() {
             No entries in this range. Log some on the calendar and they'll show up here.
           </p>
         ) : (
-          <div className="flex flex-col gap-3 px-3 py-3">
+          <div className="flex flex-col gap-3 px-3 pb-3 pt-2">
             {days.map(({ date, entries }) => (
               <TrackerDayCard
                 key={date}

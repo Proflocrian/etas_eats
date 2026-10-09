@@ -71,7 +71,7 @@ export function LastSymptoms({
 
   return (
     <>
-      <div className="flex flex-col gap-3 px-3 py-3">
+      <div className="flex flex-col gap-3 px-3 pb-3 pt-2">
       {groups.map(({ symptom, priors }) => {
         const symptomAt = entryDateTime(symptom.date, symptom.time)
         return (

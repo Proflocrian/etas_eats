@@ -110,6 +110,7 @@ export function CalendarView() {
             const typeOk = activeTypes.size === 0 || activeTypes.has(e.entryType)
             const triggerOk =
               !onlyTriggers ||
+              e.entryType === 'symptom' ||
               ((e.entryType === 'food' || e.entryType === 'activity') &&
                 e.possibleTrigger)
             return typeOk && triggerOk

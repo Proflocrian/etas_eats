@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { FilterChip } from '../components/FilterChip'
-import { FilterDivider, FilterRow, PeriodRow } from '../components/filter-bar'
+import { FilterCard, FilterDivider, FilterRow, PeriodRow } from '../components/filter-bar'
 import { LastSymptoms } from '../components/LastSymptoms'
 import { TriggerList, type TriggerType } from '../components/TriggerList'
 import { WaveAccent } from '../components/decor'
@@ -171,8 +171,8 @@ export function AnalysisView() {
 
       <div className="relative shrink-0">
         {tab === 'symptoms' ? (
-          <>
-            <div className="grid grid-cols-3 gap-1.5 px-3 pb-1.5">
+          <FilterCard>
+            <div className="grid grid-cols-3 gap-1.5 pb-1.5">
               <FilterChip
                 className="col-span-3 w-full"
                 label={FILTER_CHIP_META.all.display}
@@ -194,10 +194,9 @@ export function AnalysisView() {
             </div>
             <FilterDivider />
             <PeriodRow value={symptomPeriod} onChange={setSymptomPeriod} />
-            <FilterDivider />
-          </>
+          </FilterCard>
         ) : (
-          <>
+          <FilterCard>
             <FilterRow>
               <FilterChip
                 label={FILTER_CHIP_META.all.display}
@@ -220,9 +219,12 @@ export function AnalysisView() {
             </FilterRow>
             <FilterDivider />
             <PeriodRow value={triggerPeriod} onChange={setTriggerPeriod} />
-            <FilterDivider />
-          </>
+          </FilterCard>
         )}
+        <div
+          className="mx-auto h-[1px] w-3/4"
+          style={{ backgroundColor: ENTRY_TYPE_META.symptom.border }}
+        />
       </div>
 
       <div

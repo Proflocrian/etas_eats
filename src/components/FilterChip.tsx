@@ -22,7 +22,7 @@ export function FilterChip({
       aria-pressed={active}
       aria-label={name ?? label}
       title={name}
-      className={`${PILL_CLASS} tap min-w-[2.5rem] whitespace-nowrap text-center text-text-secondary ${className} ${
+      className={`${PILL_CLASS} tap min-w-[2.5rem] whitespace-nowrap text-center text-text-muted ${className} ${
         active ? 'font-bold' : ''
       }`}
       style={{

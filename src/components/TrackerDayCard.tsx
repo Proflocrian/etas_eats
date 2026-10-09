@@ -25,7 +25,10 @@ export function TrackerDayCard({
       <PrintTrim height={6} />
       <div className="p-3">
         <div className="mb-1 flex items-baseline justify-between gap-2">
-          <span className="font-display font-semibold text-text-primary">
+          <span
+            className="font-display font-semibold"
+            style={{ color: ENTRY_TYPE_META.symptom.border }}
+          >
             {formatLongDate(parseDateKey(date))}
           </span>
           <span className="shrink-0 text-xs text-text-muted">

@@ -46,7 +46,7 @@ export function TriggerList({
   }
 
   return (
-    <div className="px-4 py-3">
+    <div className="px-4 pb-3 pt-2">
       {/* Grouped card (like a Settings list) - each flagged entry is a tappable
           row with its type dot and a chevron into the detail sheet. */}
       <div

@@ -39,7 +39,7 @@ export const ACTIVITY_PLACEHOLDERS: string[] = [
 export const SYMPTOM_TYPE_LABELS: Record<SymptomTypeEnum, string> = {
   heartburn: 'Heartburn',
   regurgitation: 'Regurgitation',
-  'abdominal-pain': 'Abdominal Pain',
+  'abdominal-pain': 'Stomach Pain',
   nausea: 'Nausea',
   bloating: 'Bloating',
   other: 'Other (Notes)',
