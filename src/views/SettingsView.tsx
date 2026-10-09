@@ -21,6 +21,7 @@ const LANGUAGES: { id: string; label: string; flag: string }[] = [
   { id: 'en', label: 'English', flag: '🇬🇧' },
   { id: 'it', label: 'Italian', flag: '🇮🇹' },
   { id: 'nl', label: 'Dutch', flag: '🇳🇱' },
+  { id: 'zh', label: '中國人', flag: '🇨🇳' },
 ]
 
 const WHATSAPP_PHONE = '447428922494'
@@ -44,6 +45,9 @@ export function SettingsView() {
   const { themeId, setTheme: selectTheme } = useTheme()
   const [language, setLanguage] = useState('en') // placeholder, non-functional
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [alert, setAlert] = useState<{ title: string; body: React.ReactNode } | null>(
+    null,
+  )
 
   return (
     <div
@@ -222,7 +226,11 @@ export function SettingsView() {
               <button
                 key={lang.id}
                 type="button"
-                onClick={() => setLanguage(lang.id)}
+                onClick={() =>
+                  lang.id === 'zh'
+                    ? setAlert({ title: '傻女孩', body: '你不會說中文' })
+                    : setLanguage(lang.id)
+                }
                 aria-pressed={active}
                 className={`flex w-full items-center justify-between px-4 py-3 text-left ${
                   i > 0 ? 'border-t border-divider' : ''
@@ -305,15 +313,33 @@ export function SettingsView() {
         {/* Battery */}
         <SectionTitle>Battery</SectionTitle>
         <div
-          className="flex items-center gap-3 rounded-xl border border-card-border px-4 py-3"
+          className="overflow-hidden rounded-xl border border-card-border"
           style={{ backgroundColor: COLORS.settingsButtonBg }}
         >
-          <span className="text-xl" aria-hidden="true">
-            🪫
-          </span>
-          <span className="text-sm text-text-secondary">
-            Battery Percentage: (Probably) Too Low, Charge it babe!
-          </span>
+          <button
+            type="button"
+            onClick={() =>
+              setAlert({
+                title: 'Battery Percentage',
+                body: (
+                  <>
+                    <em>Probably</em> too - charge it babe so we can call!
+                  </>
+                ),
+              })
+            }
+            className="flex w-full items-center justify-between px-4 py-3 text-left"
+          >
+            <span className="flex items-center gap-3">
+              <span className="text-xl" aria-hidden="true">
+                🪫
+              </span>
+              <span className="text-base text-text-primary">Check Battery</span>
+            </span>
+            <span className="text-text-muted" aria-hidden="true">
+              ›
+            </span>
+          </button>
         </div>
 
         {/* Danger Area */}
@@ -355,6 +381,15 @@ export function SettingsView() {
           confirmLabel="Yes"
           onConfirm={() => clearAllEntries()}
           onClose={() => setConfirmDelete(false)}
+        />
+      )}
+
+      {alert && (
+        <Modal
+          variant="alert"
+          title={alert.title}
+          bodyMessage={alert.body}
+          onClose={() => setAlert(null)}
         />
       )}
     </div>

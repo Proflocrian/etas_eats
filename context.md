@@ -1,17 +1,8 @@
 # Current Instructions
 
-We have now finished most parts of the app, now we start to implement the settings view. 
+Great!
 
-Lets start with; 
-
-On the Request Feature button, when clicked, it should open `https://wa.me/447428922494?text=Hi babe, can you please implement ... in EtasEats for me? 💜 Xxx`
-
-
-Nice, then underneath that, lets add a new button (with 🎁 emoji) called `Donate`, and when clicked, basically does the same thing, but this time the embedded text is `Hey babe, here's a nude for you xxx`
-
-Let's also implement the `Delete all data` button, when clicked, open a modal that says; `title=BABY!!`, `bodyMessage=Do you know what you're doing?? This will delete _all_ data, and all entries. Are you sure!?`. When clicked yes, actually delete all _Entry_ data, other stuff like theme and etc can stay. 
-
-
+Now for potentially a hard implementation but hopefully not, when she clicks Export Data, this should offer the native `Share to` with options like Gmail, WhatsApp etc, and what it shares is a csv file of all the entries with all the appropriate columns as one big table. Possible?
 
 ---
 
