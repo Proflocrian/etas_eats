@@ -47,6 +47,7 @@ export interface Palette {
   gridLineHalf: string // calendar half-hour lines
   gridCol: string // calendar day-column dividers
   gridScrim: string // overlay over a patterned bg behind the grid ('transparent' if none)
+  todayColumn: string // subtle wash behind today's calendar column (low-alpha tint)
   inputBg: string // text input fill
   inputBorder: string // text input border (== inputBg for a borderless filled look)
   placeholder: string // input placeholder text
@@ -102,6 +103,7 @@ const CSS_VARS: Record<keyof Palette, string> = {
   gridLineHalf: '--color-grid-line-half',
   gridCol: '--color-grid-col',
   gridScrim: '--color-grid-scrim',
+  todayColumn: '--color-today-column',
   inputBg: '--color-input-bg',
   inputBorder: '--color-input-border',
   placeholder: '--color-placeholder',
@@ -255,6 +257,7 @@ export const THEMES: Record<ThemeId, Theme> = {
       gridLineHalf: '#F6F6F6',
       gridCol: '#F2F2F2',
       gridScrim: 'transparent',
+      todayColumn: 'rgba(6,193,103,.10)',
       inputBg: '#F3F3F3',
       inputBorder: '#F3F3F3',
       placeholder: '#9E9E9E',
@@ -312,6 +315,7 @@ export const THEMES: Record<ThemeId, Theme> = {
       gridLineHalf: '#EEDFC5',
       gridCol: '#E8D6B8',
       gridScrim: 'rgba(252,246,236,.88)',
+      todayColumn: 'rgba(184,134,44,.16)',
       inputBg: '#FFFBF3',
       inputBorder: '#D8C3A0',
       placeholder: '#A08868',
@@ -390,6 +394,7 @@ export const THEMES: Record<ThemeId, Theme> = {
       gridLineHalf: '#F9D2E4',
       gridCol: '#F6C3DB',
       gridScrim: 'rgba(255,248,251,.88)',
+      todayColumn: 'rgba(224,0,122,.09)',
       inputBg: '#FFFFFF',
       inputBorder: '#F6B3D3',
       placeholder: '#B57A99',
@@ -468,6 +473,7 @@ export const THEMES: Record<ThemeId, Theme> = {
       gridLineHalf: '#305C88',
       gridCol: '#34618D',
       gridScrim: 'transparent',
+      todayColumn: 'rgba(168,216,234,.07)',
       inputBg: '#FFFFFF',
       inputBorder: '#CFDCE8',
       placeholder: '#7891AA',
@@ -653,9 +659,9 @@ export const FILTER_CHIP_META: Record<'all' | 'trigger', ChipMeta> = {
 export const TAB_EMOJI: Record<Tab, string> = {
   calendar: '🗓️',
   tracker: '📋',
-  analysis: '🔬',
+  analysis: '🔍',
   settings: '⚙️',
-  about: '❓',
+  about: 'ℹ️',
 }
 
 // Shared pill/chip base so the calendar filter chips and the form pills are

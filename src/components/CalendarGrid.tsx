@@ -191,11 +191,7 @@ export function CalendarGrid({
               <div
                 key={key}
                 className="relative flex-1 border-l border-grid-col"
-                style={
-                  isToday && decor.elevenRow
-                    ? { backgroundColor: 'rgba(168,216,234,.07)' }
-                    : undefined
-                }
+                style={isToday ? { backgroundColor: COLORS.todayColumn } : undefined}
               >
                 {/* Tappable empty slots + grid lines. */}
                 {slots.map((t, i) => (
