@@ -87,9 +87,10 @@ export function BottomNav({
                 </span>
               </>
             )}
-            <span className="text-3xl leading-none" role="img" aria-label={label}>
+            <span className="text-2xl leading-none" role="img" aria-label={label}>
               {TAB_EMOJI[tab]}
             </span>
+            <span className="font-medium">{label}</span>
           </button>
         )
       })}

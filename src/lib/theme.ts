@@ -376,7 +376,7 @@ export const THEMES: Record<ThemeId, Theme> = {
       pillBorderIdle: '#F6B3D3',
       navFont: '#FFE0F0',
       navSelectedFont: '#FFFFFF',
-      navBg: '#C4006C',
+      navBg: '#B3186D',
       fabBg: '#E0007A',
       settingsButtonBg: '#FFFFFF',
       sheetBg: '#FFF6FA',
