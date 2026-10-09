@@ -141,3 +141,9 @@ export async function replaceEntry(entry: Entry): Promise<number> {
 export async function deleteEntry(id: number): Promise<void> {
   return db.entries.delete(id)
 }
+
+// Wipe every entry (used by Settings "Delete All Data"). Theme/settings are
+// stored separately in localStorage and are not touched.
+export async function clearAllEntries(): Promise<void> {
+  return db.entries.clear()
+}

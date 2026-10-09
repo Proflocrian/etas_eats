@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { clearAllEntries } from '../db/entries'
 import { COLORS, type Palette, type ThemeId, THEMES } from '../lib/theme'
 import { useTheme } from '../lib/theme-context'
 import { HeartClock, HeartWatermark, Sparkles, Star, WaveAccent } from '../components/decor'
+import { Modal } from '../components/Modal'
 
 // 11:11 theme card: the wave fades in from the right.
 const CARD_WAVE_MASK = 'linear-gradient(90deg,transparent,#000 75%)'
@@ -21,9 +23,16 @@ const LANGUAGES: { id: string; label: string; flag: string }[] = [
   { id: 'nl', label: 'Dutch', flag: '🇳🇱' },
 ]
 
-const FEATURE_REQUEST_URL = `https://wa.me/447428922494?text=${encodeURIComponent(
-  'Hi babe, can you please implement ... in EtasEats for me? 💜 Xxx',
-)}`
+const WHATSAPP_PHONE = '447428922494'
+
+// The whatsapp:// scheme opens the app directly; iOS cancels the page navigation,
+// so (unlike window.open) nothing blank is left behind in the installed PWA.
+function openWhatsApp(text: string) {
+  window.location.href = `whatsapp://send?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(text)}`
+}
+
+const FEATURE_REQUEST_TEXT = 'Hi babe, can you please implement ... in EtasEats for me? 💜 Xxx'
+const DONATE_TEXT = "Hey babe, here's a nude for you xxx"
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -34,6 +43,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 export function SettingsView() {
   const { themeId, setTheme: selectTheme } = useTheme()
   const [language, setLanguage] = useState('en') // placeholder, non-functional
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   return (
     <div
@@ -260,7 +270,7 @@ export function SettingsView() {
           </button>
           <button
             type="button"
-            onClick={() => window.open(FEATURE_REQUEST_URL, '_blank', 'noopener')}
+            onClick={() => openWhatsApp(FEATURE_REQUEST_TEXT)}
             className="flex w-full items-center justify-between border-t border-divider px-4 py-3 text-left"
           >
             <span className="flex items-center gap-3">
@@ -270,6 +280,21 @@ export function SettingsView() {
               <span className="text-base text-text-primary">
                 Request Features / Bug Support
               </span>
+            </span>
+            <span className="text-text-muted" aria-hidden="true">
+              ›
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => openWhatsApp(DONATE_TEXT)}
+            className="flex w-full items-center justify-between border-t border-divider px-4 py-3 text-left"
+          >
+            <span className="flex items-center gap-3">
+              <span className="text-xl" aria-hidden="true">
+                🎁
+              </span>
+              <span className="text-base text-text-primary">Donate</span>
             </span>
             <span className="text-text-muted" aria-hidden="true">
               ›
@@ -299,6 +324,7 @@ export function SettingsView() {
         >
           <button
             type="button"
+            onClick={() => setConfirmDelete(true)}
             className="flex w-full items-center justify-between px-4 py-3 text-left"
           >
             <span className="flex items-center gap-3">
@@ -315,6 +341,22 @@ export function SettingsView() {
           </button>
         </div>
       </div>
+
+      {confirmDelete && (
+        <Modal
+          variant="confirm"
+          title="BABY!!"
+          bodyMessage={
+            <>
+              Do you know what you're doing?? This will delete <em>all</em> data, and
+              all entries. Are you sure!?
+            </>
+          }
+          confirmLabel="Yes"
+          onConfirm={() => clearAllEntries()}
+          onClose={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   )
 }
