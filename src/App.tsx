@@ -82,19 +82,17 @@ function App() {
           <Sparkles stars={BG_SPARKLES} color="#FFFFFF" big />
         </div>
       )}
-      {/* Safety net for the home-indicator strip: a fixed inset-0 layer (reaches the
-          true bottom) whose gradient paints only the bottom safe-area, in the active
-          nav's colour. The nav covers it when the layout is correct; if iOS ever
-          shorts the height, this fills the gap so the nav never looks like it floats. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0"
-        style={{
-          zIndex: -1,
-          background:
-            'linear-gradient(to top, var(--nav-bottom-fill) env(safe-area-inset-bottom), transparent env(safe-area-inset-bottom))',
-        }}
-      />
+      {/* Safety net for the home-indicator strip: a bottom-anchored inner element
+          (absolute bottom-0 inside a full-screen fixed layer) painted in the active
+          nav colour, so the strip under the nav is never a bare/cream gap. The nav
+          covers it when the layout is correct; if iOS shorts the height, this fills
+          the gap. Uses env() as a height (well supported), not a gradient stop. */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0" style={{ zIndex: -1 }}>
+        <div
+          className="absolute inset-x-0 bottom-0"
+          style={{ height: 'env(safe-area-inset-bottom)', background: 'var(--color-nav-bg)' }}
+        />
+      </div>
       {/* min-h-0 lets the active view own its own vertical scroll. */}
       <main className="min-h-0 flex-1 overflow-hidden">
         {tab === 'calendar' && <CalendarView />}

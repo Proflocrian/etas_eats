@@ -74,9 +74,6 @@ textarea::placeholder {
 
 :root {
   color-scheme: light;
-  /* Colour used to paint the home-indicator strip under the nav (set per theme by
-     applyTheme to the active nav background); transparent until then. */
-  --nav-bottom-fill: transparent;
   /* Pre-JS fallbacks for the string-valued treatment tokens (default theme).
      applyTheme overrides these on :root before first paint. */
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.06);
@@ -434,7 +431,10 @@ body {
 
 body {
   margin: 0;
-  background-color: var(--color-app-bg, #fff8f3);
+  /* The page canvas shows through in the home-indicator strip on iOS standalone, so
+     paint it the active nav colour (not the app bg) - this fills that strip when the
+     fixed layout stops at the safe viewport. On flat themes nav bg == app bg. */
+  background-color: var(--color-nav-bg, #fff8f3);
   -webkit-font-smoothing: antialiased;
   font-family: var(
     --app-font,
