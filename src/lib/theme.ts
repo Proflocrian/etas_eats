@@ -570,16 +570,15 @@ export function applyTheme(id: ThemeId): void {
   root.style.setProperty('--app-font', theme.font)
   root.style.setProperty('--app-font-display', theme.fontDisplay ?? theme.font)
   root.style.setProperty('--app-font-display-style', theme.fontDisplayStyle ?? 'normal')
-  // The nav's full background (print on leopard, velour on 2000s, solid elsewhere),
-  // used to paint the home-indicator strip (body bg) so it matches the nav exactly.
-  root.style.setProperty(
-    '--nav-strip-bg',
-    theme.decor?.navPrint
-      ? 'var(--leopard-dark)'
-      : theme.decor?.navVelour
-        ? 'var(--nav-velour)'
-        : theme.palette.navBg,
-  )
+  // The nav's full background, used to paint the home-indicator strip (body bg) so it
+  // matches the nav. Emit the resolved literal, not a chained var(): Safari drops a
+  // background-image url() referenced through two levels of custom property.
+  const navStripBg = theme.decor?.navPrint
+    ? theme.treatments?.['--leopard-dark']
+    : theme.decor?.navVelour
+      ? theme.treatments?.['--nav-velour']
+      : undefined
+  root.style.setProperty('--nav-strip-bg', navStripBg ?? theme.palette.navBg)
 }
 
 // Persisted theme choice (localStorage; falls back to default if unavailable).
