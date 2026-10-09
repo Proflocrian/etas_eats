@@ -45,39 +45,6 @@ export function SettingsView() {
         Settings - probe
       </h1>
 
-      {/* TEMP diagnostic: safe-area / nav-position probe. Remove once the home-indicator
-          strip issue is resolved. */}
-      <button
-        type="button"
-        onClick={() => {
-          const probe = document.createElement('div')
-          probe.style.cssText =
-            'position:fixed;bottom:0;left:0;height:env(safe-area-inset-bottom);width:1px'
-          document.body.append(probe)
-          const inset = probe.offsetHeight
-          probe.remove()
-          const nav = document.querySelector('nav')
-          alert(
-            JSON.stringify(
-              {
-                innerH: window.innerHeight,
-                screenH: window.screen.height,
-                vvH: Math.round(window.visualViewport?.height ?? 0),
-                docClientH: document.documentElement.clientHeight,
-                insetBottom: inset,
-                navBottom: nav ? Math.round(nav.getBoundingClientRect().bottom) : null,
-                dpr: window.devicePixelRatio,
-              },
-              null,
-              2,
-            ),
-          )
-        }}
-        className="relative z-10 mx-1 mb-2 shrink-0 rounded-lg border border-divider bg-input-bg px-3 py-2 text-sm font-semibold text-text-primary"
-      >
-        🔧 Probe safe-area
-      </button>
-
       <div className="min-h-0 flex-1 overflow-y-auto pb-6">
         {/* Theme */}
         <SectionTitle>Theme</SectionTitle>
