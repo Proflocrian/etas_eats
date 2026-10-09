@@ -1,24 +1,16 @@
 # Current Instructions
 
-Now for a slightly big change. 
+We have now finished most parts of the app, now we start to implement the settings view. 
 
-Lets create the TrackerView. 
+Lets start with; 
 
-Here the idea is that she can see any Entry type by day in "blocks" similar to what you did for the last symptom tab, where each SymptomEntry was a card with some details.
+On the Request Feature button, when clicked, it should open `https://wa.me/447428922494?text=Hi babe, can you please implement ... in EtasEats for me? 💜 Xxx`
 
-Here though; 
 
-- We again have the filters;
-  - All | {entry types as emojis} | {trigger} // so exactly like the calendar view
-  - divider
-  - Period filter: all | 3 days | week | month // 3 days as default
-  - divider
-  - where the styles are the same (as much as possible) to our other filter stylings
-- It goes in anti-chronilogical ordering (so newest first)
-- Each `TrackerDayCard` has cool styling per theme similar to what we did on the `Last Symptoms` tabs, each entry on the list. 
-- And each card shows all the entries for that day
+Nice, then underneath that, lets add a new button (with 🎁 emoji) called `Donate`, and when clicked, basically does the same thing, but this time the embedded text is `Hey babe, here's a nude for you xxx`
 
-Feel free to ask questions if that doesnt make sense
+Let's also implement the `Delete all data` button, when clicked, open a modal that says; `title=BABY!!`, `bodyMessage=Do you know what you're doing?? This will delete _all_ data, and all entries. Are you sure!?`. When clicked yes, actually delete all _Entry_ data, other stuff like theme and etc can stay. 
+
 
 
 ---

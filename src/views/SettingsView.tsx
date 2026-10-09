@@ -21,6 +21,10 @@ const LANGUAGES: { id: string; label: string; flag: string }[] = [
   { id: 'nl', label: 'Dutch', flag: '🇳🇱' },
 ]
 
+const FEATURE_REQUEST_URL = `https://wa.me/447428922494?text=${encodeURIComponent(
+  'Hi babe, can you please implement ... in EtasEats for me? 💜 Xxx',
+)}`
+
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h2 className="px-1 pb-2 pt-5 text-lg font-extrabold text-text-primary">{children}</h2>
@@ -256,6 +260,7 @@ export function SettingsView() {
           </button>
           <button
             type="button"
+            onClick={() => window.open(FEATURE_REQUEST_URL, '_blank', 'noopener')}
             className="flex w-full items-center justify-between border-t border-divider px-4 py-3 text-left"
           >
             <span className="flex items-center gap-3">

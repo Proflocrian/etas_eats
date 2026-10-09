@@ -47,9 +47,12 @@ export function TrackerView() {
     const filtered = all.filter((e) => {
       if (!withinPeriod(e.date, start)) return false
       if (activeTypes.size > 0 && !activeTypes.has(e.entryType)) return false
-      if (onlyTriggers) {
-        if (e.entryType !== 'food' && e.entryType !== 'activity') return false
-        if (!e.possibleTrigger) return false
+      if (
+        onlyTriggers &&
+        (e.entryType === 'food' || e.entryType === 'activity') &&
+        !e.possibleTrigger
+      ) {
+        return false
       }
       return true
     })
