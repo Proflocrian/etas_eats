@@ -571,12 +571,9 @@ export function applyTheme(id: ThemeId): void {
   root.style.setProperty('--app-font-display', theme.fontDisplay ?? theme.font)
   root.style.setProperty('--app-font-display-style', theme.fontDisplayStyle ?? 'normal')
   // The home-indicator strip sits outside the web viewport on iOS standalone and is
-  // painted from the body background. Fade each theme's navBg to black so the strip
-  // reads as a natural darkening into the device edge.
-  root.style.setProperty(
-    '--nav-strip-bg',
-    `linear-gradient(to bottom, ${theme.palette.navBg}, #000)`,
-  )
+  // painted from the body background's solid colour (image/gradient layers are dropped
+  // there). Black on every theme reads as a natural device edge.
+  root.style.setProperty('--nav-strip-bg', '#000')
 }
 
 // Persisted theme choice (localStorage; falls back to default if unavailable).
