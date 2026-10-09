@@ -20,12 +20,10 @@ import {
   ENTRY_TYPE_META,
   ENTRY_TYPE_ORDER,
   FILTER_CHIP_META,
-  PILL_BG_COLOUR,
-  PILL_BORDER_IDLE,
-  PILL_CLASS,
 } from '../lib/theme'
 import { useDecor } from '../lib/theme-context'
 import { useBackToClose } from '../lib/use-back-to-close'
+import { FilterChip } from '../components/FilterChip'
 import { WaveAccent } from '../components/decor'
 
 // 11:11 header strip: the wave fades out by ~120px, behind the status bar and the
@@ -43,41 +41,6 @@ let savedOnlyTriggers = false
 
 function visibleDays(anchor: Date, mode: ViewMode): Date[] {
   return mode === 'week' ? weekDays(anchor) : [anchor]
-}
-
-function FilterChip({
-  label,
-  name,
-  active,
-  accent,
-  onClick,
-  className = '',
-}: {
-  label: string
-  name?: string // accessible name when the label is an emoji
-  active: boolean
-  accent: string // selected border colour
-  onClick: () => void
-  className?: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      aria-label={name ?? label}
-      title={name}
-      className={`${PILL_CLASS} tap min-w-[2.5rem] whitespace-nowrap text-center text-text-secondary ${className} ${
-        active ? 'font-bold' : ''
-      }`}
-      style={{
-        backgroundColor: PILL_BG_COLOUR,
-        borderColor: active ? accent : PILL_BORDER_IDLE,
-      }}
-    >
-      {label}
-    </button>
-  )
 }
 
 export function CalendarView() {

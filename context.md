@@ -1,13 +1,27 @@
 # Current Instructions
 
-The 11:11 theme has a "highlighted" column in the CalendarGrid for today, none of the other themes do - can you make it across all themes and make this a themePalette colour (eg todayCalendarHighlightColour or whatever) that gets used generically - hence, you might even need to rewrite a little bit of the 11:11 theme to make that work like the rest too. For the other themes, come up with the colour yourself using common sense.
+Now for a slightly big change. 
 
-Likewise,  a few small changes at once, for the BottomNav; 
+Lets create the TrackerView. 
 
-- Lets remove the text from the icons (lets just keep the emoji)
-- Slightly bigger change lets rename the `TriggersView` -> `AnalysisView`, updating any variable /file names where appropriate, likewise, lets swap out the emoji for this one `🔬`
-- Lets add a new page, called `TrackerView`, with the emoji `📋`
-- Let's make the whole NavBar slightly smaller (in terms of height)
+Here the idea is that she can see any Entry type by day in "blocks" similar to what you did for the last symptom tab, where each SymptomEntry was a card with some details.
+
+Here though; 
+
+- We again have the filters;
+  - All | {entry types as emojis} | {trigger} // so exactly like the calendar view
+  - divider
+  - Period filter: all | 3 days | week | month // 3 days as default
+  - divider
+  - where the styles are the same (as much as possible) to our other filter stylings
+- It goes in anti-chronilogical ordering (so newest first)
+- Each `TrackerDayCard` has cool styling per theme similar to what we did on the `Last Symptoms` tabs, each entry on the list. 
+- And each card shows all the entries for that day
+
+Feel free to ask questions if that doesnt make sense
+
+
+---
 
 
 # Food Diary PWA — EtasEats

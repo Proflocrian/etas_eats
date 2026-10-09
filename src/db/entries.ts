@@ -78,13 +78,17 @@ function byDateTimeDesc(a: Entry, b: Entry): number {
   return ka === kb ? b.createdAt - a.createdAt : ka < kb ? 1 : -1
 }
 
-// The most recent symptom entries, newest first (for the Triggers view).
-export async function getRecentSymptoms(limit = 5): Promise<SymptomEntry[]> {
+// All symptom entries, newest first.
+export async function getAllSymptoms(): Promise<SymptomEntry[]> {
   const symptoms = (await db.entries
     .where('entryType')
     .equals('symptom')
     .toArray()) as SymptomEntry[]
-  return symptoms.sort(byDateTimeDesc).slice(0, limit)
+  return symptoms.sort(byDateTimeDesc)
+}
+
+export async function getRecentSymptoms(limit = 5): Promise<SymptomEntry[]> {
+  return (await getAllSymptoms()).slice(0, limit)
 }
 
 // Up to `limit` Food/Activity entries strictly before a datetime and within

@@ -10,6 +10,7 @@ import {
 } from '../lib/calendar'
 import { useDecor } from '../lib/theme-context'
 import { DateTimeDialog } from './DateTimeDialog'
+import { Modal } from './Modal'
 import { SheetGrabber, Star, WaveAccent } from './decor'
 import { YesNoSwitch } from './YesNoSwitch'
 import {
@@ -154,6 +155,21 @@ export function EntryForm({
     (entryType === 'activity' && activity.trim() === '') ||
     (entryType === 'symptom' && symptomTypes.size === 0)
 
+  // In edit mode, keep Save disabled until something actually changes.
+  const unchanged =
+    entry !== undefined &&
+    dateKey === entry.date &&
+    time === entry.time &&
+    (notes.trim() || undefined) === (entry.notes?.trim() || undefined) &&
+    (entry.entryType === 'food'
+      ? food.trim() === entry.food &&
+        (quantity.trim() || undefined) === (entry.quantity?.trim() || undefined) &&
+        possibleTrigger === entry.possibleTrigger
+      : entry.entryType === 'activity'
+        ? activity.trim() === entry.activity && possibleTrigger === entry.possibleTrigger
+        : symptomTypes.size === entry.symptomTypes.length &&
+          entry.symptomTypes.every((s) => symptomTypes.has(s)))
+
   function toggleSymptom(st: SymptomTypeEnum) {
     setSymptomTypes((prev) => {
       const next = new Set(prev)
@@ -289,10 +305,12 @@ export function EntryForm({
           <button
             type="button"
             onClick={handleSave}
-            disabled={missingRequired || saving}
+            disabled={missingRequired || saving || unchanged}
             className={`tap rounded-full px-5 py-1.5 text-sm font-semibold disabled:opacity-40 ${
-              decor.goldSave && !missingRequired && !saving && !dragging ? 'cl-save' : ''
-            } ${decor.bedazzleSave && !missingRequired && !saving ? 'tt-save' : ''}`}
+              decor.goldSave && !missingRequired && !saving && !unchanged && !dragging
+                ? 'cl-save'
+                : ''
+            } ${decor.bedazzleSave && !missingRequired && !saving && !unchanged ? 'tt-save' : ''}`}
             style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
           >
             Save
@@ -533,48 +551,14 @@ export function EntryForm({
       )}
 
       {confirmFuture && (
-        <div
-          className="scrim-fade fixed inset-0 z-[60] flex items-center justify-center px-4"
-          style={{ backgroundColor: COLORS.scrim }}
-          onClick={(e) => {
-            e.stopPropagation()
-            setConfirmFuture(false)
-          }}
-        >
-          <div
-            className="sheet-scope w-full max-w-xs rounded-2xl p-4"
-            style={{ backgroundColor: COLORS.sheetBg, boxShadow: COLORS.sheetShadow }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="mb-2 text-base font-semibold text-text-primary">
-              Are you sure you wanna save this entry? 👀
-            </h2>
-            <p className="mb-4 text-sm text-text-secondary">
-              This is in the future - have you time travelled babe? If so, give me
-              gambling tips xxx
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmFuture(false)}
-                className="rounded-lg px-4 py-1.5 text-sm text-text-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setConfirmFuture(false)
-                  doSave()
-                }}
-                className="tap rounded-lg px-4 py-1.5 text-sm font-semibold"
-                style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+        <Modal
+          variant="confirm"
+          title="Are you sure you wanna save this entry? 👀"
+          bodyMessage="This is in the future - have you time travelled babe? If so, give me gambling tips xxx"
+          confirmLabel="Save"
+          onConfirm={doSave}
+          onClose={() => setConfirmFuture(false)}
+        />
       )}
     </div>
   )

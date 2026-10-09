@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { SymptomEntry, TriggerableEntry } from '../db/db'
-import { getEntriesBefore, getRecentSymptoms, updateEntry } from '../db/entries'
+import type { SymptomEntry, SymptomTypeEnum, TriggerableEntry } from '../db/db'
+import { getAllSymptoms, getEntriesBefore, updateEntry } from '../db/entries'
 import { entryDateTime, formatGap, formatLongDate, parseDateKey } from '../lib/calendar'
 import { entryTitle } from '../lib/entryTypes'
+import { type Period, periodStart, withinPeriod } from '../lib/period'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { useBackToClose } from '../lib/use-back-to-close'
 import { PrintTrim } from './decor'
@@ -14,21 +15,32 @@ interface Group {
   priors: TriggerableEntry[]
 }
 
-export function LastSymptoms() {
+export function LastSymptoms({
+  symptomTypes,
+  period,
+}: {
+  symptomTypes: Set<SymptomTypeEnum>
+  period: Period
+}) {
   const [groups, setGroups] = useState<Group[]>([])
   const [selected, setSelected] = useState<TriggerableEntry | null>(null)
   useBackToClose(selected !== null, () => setSelected(null))
 
   const load = useCallback(async () => {
-    const symptoms = await getRecentSymptoms(5)
+    const start = periodStart(period, new Date())
+    const symptoms = (await getAllSymptoms()).filter(
+      (s) =>
+        withinPeriod(s.date, start) &&
+        (symptomTypes.size === 0 || s.symptomTypes.some((t) => symptomTypes.has(t))),
+    )
     const next = await Promise.all(
       symptoms.map(async (symptom) => ({
         symptom,
-        priors: await getEntriesBefore(symptom.date, symptom.time, 5),
+        priors: await getEntriesBefore(symptom.date, symptom.time, Infinity),
       })),
     )
     setGroups(next)
-  }, [])
+  }, [symptomTypes, period])
 
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect
@@ -52,7 +64,7 @@ export function LastSymptoms() {
   if (groups.length === 0) {
     return (
       <p className="px-6 py-10 text-center text-sm text-text-muted">
-        No symptoms logged yet. Add one on the calendar and it'll show up here.
+        No symptoms in this range. Add one on the calendar and it'll show up here.
       </p>
     )
   }
@@ -86,9 +98,16 @@ export function LastSymptoms() {
               </span>
             </div>
 
+            {symptom.notes && (
+              <p className="mb-2 pl-1 text-sm italic text-text-secondary">
+                {symptom.notes}
+              </p>
+            )}
+
             {priors.length === 0 ? (
               <p className="pl-1 text-sm text-text-muted">
-                Nothing logged before this.
+                Nothing entered within the last 48 hours of this Symptom Entry - are
+                you using the app babe? 👀
               </p>
             ) : (
               <>
