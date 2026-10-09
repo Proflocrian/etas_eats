@@ -8,6 +8,44 @@ import { GerdView } from './GerdView'
 const PHOTO_URL = `${import.meta.env.BASE_URL}us.jpeg`
 const APP_VERSION = 'v1.0'
 
+type AboutRow = { emoji: string; label: string; onClick: () => void }
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="px-1 pb-2 pt-5 text-lg font-extrabold text-text-primary">{children}</h2>
+  )
+}
+
+function LinkCard({ items }: { items: AboutRow[] }) {
+  return (
+    <div
+      className="overflow-hidden rounded-xl border border-card-border"
+      style={{ backgroundColor: COLORS.settingsButtonBg }}
+    >
+      {items.map(({ emoji, label, onClick }, i) => (
+        <button
+          key={label}
+          type="button"
+          onClick={onClick}
+          className={`flex w-full items-center justify-between px-4 py-3 text-left ${
+            i > 0 ? 'border-t border-divider' : ''
+          }`}
+        >
+          <span className="flex items-center gap-3">
+            <span className="text-xl" aria-hidden="true">
+              {emoji}
+            </span>
+            <span className="text-base text-text-primary">{label}</span>
+          </span>
+          <span className="text-text-muted" aria-hidden="true">
+            ›
+          </span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export function AboutView() {
   const [alert, setAlert] = useState<{ title: string; body: React.ReactNode } | null>(
     null,
@@ -19,7 +57,7 @@ export function AboutView() {
 
   if (showGerd) return <GerdView onBack={() => setShowGerd(false)} />
 
-  const rows: { emoji: string; label: string; onClick: () => void }[] = [
+  const helpRows: AboutRow[] = [
     {
       emoji: '❓',
       label: 'How To Use The App?',
@@ -41,6 +79,45 @@ export function AboutView() {
     { emoji: '📖', label: 'GERD Wiki', onClick: () => setShowGerd(true) },
   ]
 
+  const rewardRows: AboutRow[] = [
+    {
+      emoji: '🎁',
+      label: 'Free Gift',
+      onClick: () =>
+        window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank', 'noopener'),
+    },
+    {
+      emoji: '🏍️',
+      label: 'Get A Free Ride',
+      onClick: () =>
+        setAlert({
+          title: 'Get A Free Ride',
+          body: "... On my bicycle. My queen. Xxx",
+        }),
+    },
+    {
+      emoji: '⭐',
+      label: 'Rate EtasEats',
+      onClick: () =>
+        setAlert({
+          title: 'Rate EtasEats',
+          body: "5 stars, obviously.",
+        }),
+    },
+  ]
+
+  const legalRows: AboutRow[] = [
+    {
+      emoji: '📄',
+      label: 'Terms & Privacy',
+      onClick: () =>
+        setAlert({
+          title: 'Terms & Privacy',
+          body: 'I own you 💜',
+        }),
+    },
+  ]
+
   return (
     <div
       className="relative flex h-full flex-col overflow-hidden"
@@ -55,8 +132,15 @@ export function AboutView() {
       <div className="min-h-0 flex-1 overflow-y-auto pb-6">
         {/* Hero: photo-as-icon + wordmark + version (like a normal About screen). */}
         <div className="flex flex-col items-center pb-2 pt-4 text-center">
-          <div
-            className="h-28 w-28 overflow-hidden rounded-[28px] border border-card-border"
+          <button
+            type="button"
+            onClick={() =>
+              setAlert({
+                title: 'Sup',
+                body: "If you ever see this, I'll give you a massage whenever you want 👀",
+              })
+            }
+            className="tap h-28 w-28 overflow-hidden rounded-[28px] border border-card-border"
             style={{
               backgroundColor: COLORS.settingsButtonBg,
               boxShadow: COLORS.cardShadow,
@@ -74,7 +158,7 @@ export function AboutView() {
                 💜
               </div>
             )}
-          </div>
+          </button>
           <div className="mt-3 text-2xl">
             <span className="font-bold text-text-primary">Etas </span>
             <span className="font-bold" style={{ color: COLORS.primaryAction }}>
@@ -84,32 +168,14 @@ export function AboutView() {
           <p className="mt-1 text-xs text-text-muted">{APP_VERSION}</p>
         </div>
 
-        <h2 className="px-1 pb-2 pt-5 text-lg font-extrabold text-text-primary">Help</h2>
-        <div
-          className="overflow-hidden rounded-xl border border-card-border"
-          style={{ backgroundColor: COLORS.settingsButtonBg }}
-        >
-          {rows.map(({ emoji, label, onClick }, i) => (
-            <button
-              key={label}
-              type="button"
-              onClick={onClick}
-              className={`flex w-full items-center justify-between px-4 py-3 text-left ${
-                i > 0 ? 'border-t border-divider' : ''
-              }`}
-            >
-              <span className="flex items-center gap-3">
-                <span className="text-xl" aria-hidden="true">
-                  {emoji}
-                </span>
-                <span className="text-base text-text-primary">{label}</span>
-              </span>
-              <span className="text-text-muted" aria-hidden="true">
-                ›
-              </span>
-            </button>
-          ))}
-        </div>
+        <SectionTitle>Help</SectionTitle>
+        <LinkCard items={helpRows} />
+
+        <SectionTitle>Rewards</SectionTitle>
+        <LinkCard items={rewardRows} />
+
+        <SectionTitle>Legal</SectionTitle>
+        <LinkCard items={legalRows} />
       </div>
 
       {alert && (

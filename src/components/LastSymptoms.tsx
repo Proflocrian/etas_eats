@@ -116,7 +116,7 @@ export function LastSymptoms({
                     Before this
                   </span>
                   <span className="text-xs font-medium text-text-muted">
-                    Possible trigger
+                    Possible Trigger?
                   </span>
                 </div>
                 {priors.map((p) => {

@@ -1,10 +1,12 @@
 # Current Instructions
 
-Sick. 
+Okay cool - and can we now try implement notifications? 
 
-Now, lets add an `About This App` button, which just says `t=About This App`, `b=Your boyfriend just really loves you. Xxxx`
+I just want one type of notification; 
 
-Then a `GERD Wiki` button, which opens a simple GerdView, that just has some basic FAQs, common trigger foods and activity and some (usually good food and drnks) - this shouldnt be _too_ long. But give some basic info. 
+`EtasEats: Hey babe, log your eating habits 👀`
+
+And I want to send this out twice / day, once at 11:11am and once at 7:00pm. I want these two times saved as constants (so I can quickly edit them to test)
 
 
 ---
