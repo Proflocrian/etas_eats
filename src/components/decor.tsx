@@ -6,7 +6,7 @@ import { useDecor } from '../lib/theme-context'
 export function WaveAccent({
   opacity = 1,
   mask,
-  duration = 110,
+  duration = 120,
 }: {
   opacity?: number
   mask?: string // optional CSS mask-image (header/card fades)
@@ -18,14 +18,14 @@ export function WaveAccent({
       className="pointer-events-none absolute inset-0 overflow-hidden"
       style={{ opacity, maskImage: mask, WebkitMaskImage: mask }}
     >
-      {/* A fixed 150px overhang (not %) so the rotated layer covers the corners of
-          short/wide containers too (header, theme card). The 478x358 size is a 2px
-          underscan of the 480x360 tile, so tiles overlap slightly and hide the seam. */}
+      {/* The tile is seamless in both directions (see makeWave), so it can repeat +
+          drift with no visible seam. The fixed 150px overhang lets the rotated layer
+          cover the container's corners (percentages are too small on short cards). */}
       <div
         className="tt-wave absolute"
         style={{
           inset: '-150px',
-          background: 'var(--wave-svg) 0 0 / 478px 358px repeat',
+          background: 'var(--wave-svg) 0 0 / 480px 360px repeat',
           animationDuration: `${duration}s`,
         }}
       />

@@ -57,7 +57,10 @@ function App() {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    // #root is pinned full-viewport (position:fixed/inset-0 in index.css); the shell
+    // fills it with height:100% (NOT vh/dvh, which give the short "safe" viewport in
+    // iOS standalone) so the bottom nav reaches the true bottom edge.
+    <div className="flex h-full w-full flex-col">
       {/* Fixed app-background layer. Flat themes leave --app-bg-layer unset, so the
           body's app-bg colour shows; patterned themes (e.g. leopard) paint a print
           here, behind all content. iOS ignores background-attachment:fixed, hence a

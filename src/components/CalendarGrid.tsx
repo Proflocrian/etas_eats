@@ -98,7 +98,7 @@ export function CalendarGrid({
               className="flex flex-1 flex-col items-center py-1"
             >
               <span
-                className="text-[11px] font-medium uppercase text-text-muted"
+                className="text-[11px] font-semibold uppercase text-text-primary"
                 style={
                   isToday && decor.elevenRow ? { color: COLORS.primaryAction } : undefined
                 }

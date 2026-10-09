@@ -4,6 +4,7 @@ import { getEntriesBefore, getRecentSymptoms, updateEntry } from '../db/entries'
 import { entryDateTime, formatGap, formatLongDate, parseDateKey } from '../lib/calendar'
 import { entryTitle } from '../lib/entryTypes'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
+import { useBackToClose } from '../lib/use-back-to-close'
 import { PrintTrim } from './decor'
 import { EntryDetailSheet } from './EntryDetailSheet'
 import { YesNoSwitch } from './YesNoSwitch'
@@ -16,6 +17,7 @@ interface Group {
 export function LastSymptoms() {
   const [groups, setGroups] = useState<Group[]>([])
   const [selected, setSelected] = useState<TriggerableEntry | null>(null)
+  useBackToClose(selected !== null, () => setSelected(null))
 
   const load = useCallback(async () => {
     const symptoms = await getRecentSymptoms(5)

@@ -25,6 +25,7 @@ import {
   PILL_CLASS,
 } from '../lib/theme'
 import { useDecor } from '../lib/theme-context'
+import { useBackToClose } from '../lib/use-back-to-close'
 import { WaveAccent } from '../components/decor'
 
 // 11:11 header strip: the wave fades out by ~120px, behind the status bar and the
@@ -96,6 +97,12 @@ export function CalendarView() {
   )
   const [editing, setEditing] = useState<Entry | null>(null)
 
+  // Device Back closes an open entry form instead of switching tabs.
+  useBackToClose(creating !== null || editing !== null, () => {
+    setCreating(null)
+    setEditing(null)
+  })
+
   const reload = useCallback(async () => {
     const keys = visibleDays(anchor, viewMode).map(toDateKey)
     setEntriesByDate(await getEntriesByDates(keys))
@@ -126,8 +133,8 @@ export function CalendarView() {
   const monthLabel = sameMonth
     ? `${monthAbbr(first)} ${shortYear(first)}`
     : sameYear
-      ? `${monthAbbr(first)} - ${monthAbbr(last)} ${shortYear(last)}`
-      : `${monthAbbr(first)} ${shortYear(first)} - ${monthAbbr(last)} ${shortYear(last)}`
+      ? `${monthAbbr(first)}-${monthAbbr(last)} ${shortYear(last)}`
+      : `${monthAbbr(first)} ${shortYear(first)}-${monthAbbr(last)} ${shortYear(last)}`
 
   // Apply the type + trigger filters before handing entries to the grid.
   const needsFilter = activeTypes.size > 0 || onlyTriggers
@@ -198,7 +205,7 @@ export function CalendarView() {
           >
             ‹
           </button>
-          <h1 className="font-display truncate text-2xl font-extrabold text-text-primary">
+          <h1 className="font-display truncate text-[22px] font-extrabold text-text-primary">
             {monthLabel}
           </h1>
           <button

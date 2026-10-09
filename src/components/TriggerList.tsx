@@ -3,11 +3,13 @@ import type { TriggerableEntry } from '../db/db'
 import { getPossibleTriggers } from '../db/entries'
 import { entryTitle } from '../lib/entryTypes'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
+import { useBackToClose } from '../lib/use-back-to-close'
 import { EntryDetailSheet } from './EntryDetailSheet'
 
 export function TriggerList() {
   const [items, setItems] = useState<TriggerableEntry[]>([])
   const [selected, setSelected] = useState<TriggerableEntry | null>(null)
+  useBackToClose(selected !== null, () => setSelected(null))
 
   const load = useCallback(async () => {
     setItems(await getPossibleTriggers())

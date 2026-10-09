@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { LastSymptoms } from '../components/LastSymptoms'
 import { TriggerList } from '../components/TriggerList'
 import { WaveAccent } from '../components/decor'
@@ -18,6 +18,37 @@ const TABS: { id: SubTab; emoji: string; label: string }[] = [
 export function TriggersView() {
   const [tab, setTab] = useState<SubTab>('symptoms')
   const decor = useDecor()
+
+  // Horizontal swipe between the two sub-tabs (like the calendar). There are only
+  // two tabs, so each direction has at most one destination: swipe left from Last
+  // Symptoms -> Trigger List, swipe right from Trigger List -> Last Symptoms.
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const didSwipe = useRef(false)
+
+  function onTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0]
+    touchStart.current = { x: t.clientX, y: t.clientY }
+    didSwipe.current = false
+  }
+  function onTouchMove(e: React.TouchEvent) {
+    if (!touchStart.current) return
+    const t = e.touches[0]
+    const dx = t.clientX - touchStart.current.x
+    const dy = t.clientY - touchStart.current.y
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) didSwipe.current = true
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    const start = touchStart.current
+    touchStart.current = null
+    if (!start) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - start.x
+    const dy = t.clientY - start.y
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0 && tab === 'symptoms') setTab('list')
+      else if (dx > 0 && tab === 'list') setTab('symptoms')
+    }
+  }
 
   return (
     <div
@@ -86,7 +117,20 @@ export function TriggersView() {
         </div>
       </div>
 
-      <div className="relative min-h-0 flex-1 overflow-y-auto">
+      <div
+        className="relative min-h-0 flex-1 overflow-y-auto"
+        style={{ touchAction: 'pan-y' }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onClickCapture={(e) => {
+          // Swallow the tap that ends a swipe so it doesn't open a detail sheet.
+          if (didSwipe.current) {
+            e.stopPropagation()
+            didSwipe.current = false
+          }
+        }}
+      >
         {tab === 'symptoms' ? <LastSymptoms /> : <TriggerList />}
       </div>
     </div>

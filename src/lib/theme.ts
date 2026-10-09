@@ -157,37 +157,47 @@ export interface ThemeDecor {
 }
 
 // 11:11 marbled wave: ~34 sine strokes denim -> powder -> cream plus white
-// hairlines on an ice ground, as one 480x360 inline-SVG tile (~3KB, no raster).
-// Built once at module load; emitted as the `--wave-svg` treatment var. The wave
-// period divides the tile width so it tiles horizontally without a seam.
+// hairlines on an ice ground, as one 480x360 inline-SVG tile (no raster), built
+// once at module load and emitted as `--wave-svg`. SEAMLESS IN BOTH DIRECTIONS:
+// every sine period divides W (x=0 matches x=W); each stroke overruns the tile by
+// 32px per side so caps never show at the edge; each line is drawn at y-H, y and
+// y+H so lines crossing the top/bottom wrap; and every per-line term (phase,
+// colour, width, opacity) is periodic over n, so line n flows into line 0. This
+// lets the tile `repeat` and drift with no visible seam (spec 11_11_spec_2.md §4).
 function makeWave(): string {
   const W = 480,
     H = 360,
     n = 34
   const cols = ['#1F4E86', '#2F67A3', '#5C8FC4', '#8DB4DA', '#B9D3EA', '#DCE8F2', '#F1F0EA']
+  const T = (i: number) => (2 * Math.PI * i) / n
   const line = (y0: number, i: number, amp: number) => {
     let d = ''
-    for (let x = 0; x <= W; x += 12) {
+    for (let x = -32; x <= W + 32; x += 16) {
       const y =
         y0 +
-        amp * Math.sin((2 * Math.PI * x) / (W / 2) + i * 0.28) +
-        5 * Math.sin((2 * Math.PI * x * 3) / W + i * 0.5)
-      d += (x ? 'L' : 'M') + x + ' ' + y.toFixed(1)
+        amp * Math.sin((2 * Math.PI * x) / (W / 2) + 3 * T(i)) +
+        5 * Math.sin((2 * Math.PI * x * 3) / W + 5 * T(i))
+      d += (x === -32 ? 'M' : 'L') + x + ' ' + y.toFixed(1)
     }
     return d
   }
+  const wrap = (y0: number, i: number, attrs: string) =>
+    [-H, 0, H]
+      .filter((dy) => y0 + dy > -40 && y0 + dy < H + 40)
+      .map((dy) => `<path d="${line(y0 + dy, i, 14)}" ${attrs} fill="none"/>`)
+      .join('')
   let p = ''
   for (let i = 0; i < n; i++) {
-    const y0 = -20 + (i * (H + 40)) / n
-    const band = Math.sin(i * 0.42) + 0.6 * Math.sin(i * 0.17 + 1)
+    const y0 = (i * H) / n
+    const band = Math.sin(2 * T(i)) + 0.6 * Math.sin(T(i) + 1)
     const ci = Math.max(0, Math.min(6, Math.round(((band + 1.6) / 3.2) * 6)))
-    const w = (4 + 7 * Math.abs(Math.sin(i * 0.9))).toFixed(1)
-    const o = (0.55 + 0.4 * Math.abs(Math.cos(i * 0.6))).toFixed(2)
-    p += `<path d="${line(y0, i, 14)}" stroke="${cols[ci]}" stroke-width="${w}" stroke-opacity="${o}" fill="none"/>`
+    const w = (4 + 7 * Math.abs(Math.sin(4 * T(i)))).toFixed(1)
+    const o = (0.55 + 0.4 * Math.abs(Math.cos(3 * T(i)))).toFixed(2)
+    p += wrap(y0, i, `stroke="${cols[ci]}" stroke-width="${w}" stroke-opacity="${o}"`)
   }
   for (let i = 0; i < n * 2; i++) {
-    const y0 = -20 + (i * (H + 40)) / (n * 2) + 3
-    p += `<path d="${line(y0, i / 2, 14)}" stroke="#fff" stroke-width="0.8" stroke-opacity="0.35" fill="none"/>`
+    const y0 = (i * H) / (n * 2) + 3
+    p += wrap(y0, i / 2, 'stroke="#fff" stroke-width="0.8" stroke-opacity="0.35"')
   }
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="${W}" height="${H}" fill="#E9EEF1"/>${p}</svg>`
   return 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '")'

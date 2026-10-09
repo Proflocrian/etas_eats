@@ -1,15 +1,52 @@
 # Current Instructions:
 
-Awesome - good job, everything seems to work very well! There's just a few tweaks, and I wanna do theme in batches like this; 
+Awesome - good job, everything seems to work very well then assuming it'll look good on her iPhone! 
 
-A couple tiny tweaks; 
+One final tweak on the cunty theme first; the glimmer animation on the cunty selected theme swatch, lets make it faster (not more frequent just faster) - then I think we're done for individual themes!
 
-- The glimmer animation on the cunty slected theme swatch, lets make it faster (not more frequent just faster)
-- 
+So the general UI changes; 
 
-So the gernal UI changes; 
+1. On the triggers page, I want to be able to swipe between the tabs (like the calendar view). Ofc, this time you'll only be able to swipe one way (and only once), ie if youre on the Last Symptoms page you can only swipe "left" to the Triggers List and vv. 
+2. An important one! When a EntryForm / EntryDetailsSheet is open, currently the back button goes to the previous page - it should actually close the EntryForm / EntryDetailsSheet. 
+3. On the CalendarView, when there are two months in the current period eg `Sep - Oct 26`, lets condense this to `Sep-Oct 26`; also lets make that font size just a _bit_ smaller; literally by 1-2 units. 
+4. Also for the CalendarView, lets make the day font style be the same as the numbers, eg `MON` should look the same as the `8` or whatever. 
 
-1. 
+---
+
+Fantastic - all great changes, good job.
+
+Now I hope this is possible, it'll ruin a lot of the aesthetic if not. 
+
+But how do I get the app to be "full page" and have the background graphics properly integrate into the top of the phone. Eg see `screenshots/current_cunty_calendar_view` (this is from my simulated iphone) vs `screenshots/mu_cunty_calendar_view.png` - do you see how the top of the app fully integrates into the phone's view (ie the leopard print takes up the top of the screen too)?
+
+Is this something that will only happen when we actually "install" the PWA onto the iphone?
+
+---
+
+Okay cool, thanks for the details. Can we also do the same for Android if we havent already. 
+
+I installed the app on the iPhone simulator (Share → Add to Home Screen), however there's a few weird quirks going on, see `screenshots\cunty_calendar_view_installed_on_iphone.jpeg`. 
+
+- It seems the top of our app gets blurry
+- The bottom nav is kind of floating
+
+Any idea how to fix this?
+
+Also if we do make changes (and I'm hosting the app through the command `npx vite --host` on my dev PC, a windows), then installed the app on the iPhone simulator (on a MacBook on the same network as my dev PC), where the iPhone installed from `http://192.168.2.101:5173/ `. So if we make changes to codebase here, will those changes reflected on the "installed" app on the phone?
+
+---
+
+Next thing is, a few small changes at once, for the BottomNav; 
+
+- Lets remove the text from the icons (lets just keep the emoji)
+- Slightly bigger change lets rename the `TriggersView` -> `AnalysisView`, updating any variable /file names where appropriate, likewise, lets swap out the emoji for this one `🔬`
+- Lets add a new page, called `TrackerView`, with the emoji `📋`
+- Let's make the whole NavBar slightly smaller (in terms of height)
+
+---
+
+The 11:11 theme has a "highlighted" column in the CalendarGrid for today, none of the other themes do - can you make it across all themes and make this a themePalette colour (eg `todayCalendarHighlightColour` or whatever) that gets used generically - hence, you might even need to rewrite a little bit of the 11:11 theme to make that work like the rest too. For the other themes, come up with the colour yourself using common sense. 
+
 # Food Diary PWA — EtasEats
 
 ## Overview

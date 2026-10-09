@@ -91,6 +91,15 @@ body,
 #root {
   height: 100%;
 }
+/* iOS standalone: height units (100%/vh/dvh) resolve to the *safe* viewport, which
+   stops above the home indicator and leaves a strip under the nav. position:fixed +
+   inset:0 fills the TRUE full viewport, so pin #root that way and size everything
+   below with height:100% (NOT vh/dvh). The nav then reaches the real bottom edge and
+   its env(safe-area-inset-bottom) padding fills the home-indicator strip. */
+#root {
+  position: fixed;
+  inset: 0;
+}
 
 /* ---- Motion (Phase 3). Reusable primitives; all transform/opacity only. ---- */
 
@@ -207,6 +216,17 @@ body,
   position: relative;
   overflow: hidden;
 }
+/* Theme-card glimmer: a quick sweep, then a rest until the next cycle - so the
+   sheen moves fast but no more often (same ~6s interval). */
+@keyframes cl-card-sheen {
+  0% {
+    transform: translateX(-140%);
+  }
+  18%,
+  100% {
+    transform: translateX(420%);
+  }
+}
 .cl-theme-card::after {
   content: '';
   position: absolute;
@@ -214,8 +234,7 @@ body,
   width: 30%;
   pointer-events: none;
   background: linear-gradient(100deg, transparent, rgba(255, 244, 214, 0.55), transparent);
-  /* No delay, so the sweep begins the moment the card becomes selected. */
-  animation: cl-band 6s ease-in-out infinite;
+  animation: cl-card-sheen 6s ease-out infinite;
 }
 
 /* ---- Trashy 2000s theme motion. ---- */
@@ -340,15 +359,18 @@ body,
 /* a. Wave drift: one 480px tile per 140-160s (set inline). The oversized inner is
    rotated -14deg for a diagonal flow; moving background-position is cheap. */
 @keyframes tt-drift {
+  /* Offset start by two-thirds of a tile so the opening frame sits further along
+     (seamless loop either way; -480px advances exactly one tile). */
   from {
-    background-position: 0 0;
+    background-position: -320px 0;
   }
   to {
-    background-position: -478px 0;
+    background-position: -800px 0;
   }
 }
 .tt-wave {
-  transform: rotate(-14deg);
+  transform: rotate(-14deg) translateZ(0);
+  backface-visibility: hidden;
   animation-name: tt-drift;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
