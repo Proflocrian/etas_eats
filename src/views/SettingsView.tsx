@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { clearAllEntries, getAllEntries } from '../db/entries'
 import { entriesToCsv } from '../lib/csv'
 import { COLORS, type Palette, type ThemeId, THEMES } from '../lib/theme'
@@ -49,6 +49,26 @@ export function SettingsView() {
   const [alert, setAlert] = useState<{ title: string; body: React.ReactNode } | null>(
     null,
   )
+
+  // Easter egg: if she cycles through every theme this session (no persistence -
+  // leaving the tab unmounts this view and resets it), tease her once.
+  const triedThemes = useRef<Set<ThemeId>>(new Set([themeId]))
+  const classicGretaShown = useRef(false)
+
+  function chooseTheme(id: ThemeId) {
+    selectTheme(id)
+    triedThemes.current.add(id)
+    if (
+      !classicGretaShown.current &&
+      triedThemes.current.size === Object.keys(THEMES).length
+    ) {
+      classicGretaShown.current = true
+      setAlert({
+        title: 'Classic Greta',
+        body: "Can't make up your mind can you pretty girl? 👀",
+      })
+    }
+  }
 
   async function exportData() {
     try {
@@ -128,7 +148,7 @@ export function SettingsView() {
               <button
                 key={id}
                 type="button"
-                onClick={() => selectTheme(id)}
+                onClick={() => chooseTheme(id)}
                 aria-pressed={active}
                 className={`flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left ${
                   leopardActive ? 'cl-theme-card' : ''
