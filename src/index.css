@@ -431,10 +431,10 @@ body {
 
 body {
   margin: 0;
-  /* The page canvas shows through in the home-indicator strip on iOS standalone, so
-     paint it the active nav colour (not the app bg) - this fills that strip when the
-     fixed layout stops at the safe viewport. On flat themes nav bg == app bg. */
-  background-color: var(--color-nav-bg, #fff8f3);
+  /* The page canvas shows in the home-indicator strip on iOS standalone, so paint it
+     the active nav background (print/velour/solid per theme) so the strip matches the
+     nav. On flat themes this equals the app bg. */
+  background: var(--nav-strip-bg, #fff8f3);
   -webkit-font-smoothing: antialiased;
   font-family: var(
     --app-font,

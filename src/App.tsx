@@ -57,12 +57,14 @@ function App() {
   }
 
   return (
-    // The shell is pinned with position:fixed/inset-0, NOT a height unit: iOS
-    // standalone resolves vh/dvh/height:100% to the short "safe" viewport (stopping
-    // above the home indicator), but a fixed inset-0 box fills the TRUE full screen
-    // (the same mechanism the background layer uses), so the nav reaches the real
-    // bottom edge and its safe-area padding fills the home-indicator strip.
-    <div className="fixed inset-0 flex flex-col">
+    // iOS standalone gives fixed layouts the "safe" viewport at the bottom (stopping
+    // above the home indicator), which left the nav floating. Pinning top/left/right
+    // and pushing `bottom` a safe-area-inset BELOW the safe viewport extends the shell
+    // to the TRUE bottom edge, so the nav (last flex child) sits at the real bottom.
+    <div
+      className="fixed inset-x-0 top-0 flex flex-col"
+      style={{ bottom: 'calc(env(safe-area-inset-bottom) * -1)' }}
+    >
       {/* Fixed app-background layer. Flat themes leave --app-bg-layer unset, so the
           body's app-bg colour shows; patterned themes (e.g. leopard) paint a print
           here, behind all content. iOS ignores background-attachment:fixed, hence a
