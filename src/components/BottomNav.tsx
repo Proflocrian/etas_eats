@@ -30,7 +30,6 @@ export function BottomNav({
           : velour
             ? 'var(--nav-velour)'
             : COLORS.navBg,
-        paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
       {/* Gold hairline along the top (leopard). */}

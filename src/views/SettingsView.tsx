@@ -42,7 +42,7 @@ export function SettingsView() {
     >
       <HeartWatermark />
       <h1 className="font-display relative shrink-0 px-1 py-2 text-4xl font-extrabold text-text-primary">
-        Settings - bg:nav-bg
+        Settings - tight-nav
       </h1>
 
       <div className="min-h-0 flex-1 overflow-y-auto pb-6">
