@@ -5,7 +5,7 @@ import { LastSymptoms } from '../components/LastSymptoms'
 import { TriggerList, type TriggerType } from '../components/TriggerList'
 import { WaveAccent } from '../components/decor'
 import type { SymptomTypeEnum } from '../db/db'
-import { SYMPTOM_TYPE_LABELS } from '../lib/entryTypes'
+import { useI18n } from '../lib/i18n-context'
 import type { Period } from '../lib/period'
 import { COLORS, ENTRY_TYPE_EMOJI, ENTRY_TYPE_META, FILTER_CHIP_META } from '../lib/theme'
 import { useDecor } from '../lib/theme-context'
@@ -15,9 +15,9 @@ const HEADER_WAVE_MASK =
 
 type SubTab = 'symptoms' | 'list'
 
-const TABS: { id: SubTab; emoji: string; label: string }[] = [
-  { id: 'symptoms', emoji: '🤒', label: 'Last Symptoms' },
-  { id: 'list', emoji: '🚩', label: 'Trigger List' },
+const TABS: { id: SubTab; emoji: string; labelKey: string }[] = [
+  { id: 'symptoms', emoji: '🤒', labelKey: 'analysis.lastSymptoms' },
+  { id: 'list', emoji: '🚩', labelKey: 'analysis.triggerList' },
 ]
 
 const TRIGGER_TYPES: TriggerType[] = ['food', 'activity']
@@ -42,6 +42,7 @@ let savedTriggerPeriod: Period = 'week'
 export function AnalysisView() {
   const [tab, setTab] = useState<SubTab>(() => savedSubTab)
   const decor = useDecor()
+  const { t } = useI18n()
 
   const [symptomTypes, setSymptomTypes] = useState<Set<SymptomTypeEnum>>(
     () => savedSymptomTypes,
@@ -147,7 +148,7 @@ export function AnalysisView() {
               backgroundColor: COLORS.segmentActiveBg,
             }}
           />
-          {TABS.map(({ id, emoji, label }) => {
+          {TABS.map(({ id, emoji, labelKey }) => {
             const isActive = tab === id
             return (
               <button
@@ -162,7 +163,7 @@ export function AnalysisView() {
                 <span role="img" aria-hidden="true">
                   {emoji}
                 </span>
-                {label}
+                {t(labelKey)}
               </button>
             )
           })}
@@ -175,20 +176,20 @@ export function AnalysisView() {
             <div className="grid grid-cols-3 gap-1.5 pb-1.5">
               <FilterChip
                 className="col-span-3 w-full"
-                label={FILTER_CHIP_META.all.display}
-                name={FILTER_CHIP_META.all.label}
+                label={t('filter.all')}
+                name={t('filter.allTypes')}
                 active={symptomTypes.size === 0}
                 accent={FILTER_CHIP_META.all.border}
                 onClick={() => setSymptomTypes(new Set())}
               />
-              {SYMPTOM_FILTER_ORDER.map((t) => (
+              {SYMPTOM_FILTER_ORDER.map((st) => (
                 <FilterChip
-                  key={t}
+                  key={st}
                   className="w-full"
-                  label={SYMPTOM_TYPE_LABELS[t]}
-                  active={symptomTypes.has(t)}
+                  label={t(`symptom.${st}`)}
+                  active={symptomTypes.has(st)}
                   accent={ENTRY_TYPE_META.symptom.border}
-                  onClick={() => toggleSymptom(t)}
+                  onClick={() => toggleSymptom(st)}
                 />
               ))}
             </div>
@@ -199,21 +200,21 @@ export function AnalysisView() {
           <FilterCard>
             <FilterRow>
               <FilterChip
-                label={FILTER_CHIP_META.all.display}
-                name={FILTER_CHIP_META.all.label}
+                label={t('filter.all')}
+                name={t('filter.allTypes')}
                 active={triggerTypes.size === 0}
                 accent={FILTER_CHIP_META.all.border}
                 onClick={() => setTriggerTypes(new Set())}
               />
               <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />
-              {TRIGGER_TYPES.map((t) => (
+              {TRIGGER_TYPES.map((type) => (
                 <FilterChip
-                  key={t}
-                  label={ENTRY_TYPE_EMOJI[t]}
-                  name={ENTRY_TYPE_META[t].label}
-                  active={triggerTypes.has(t)}
-                  accent={ENTRY_TYPE_META[t].border}
-                  onClick={() => toggleTriggerType(t)}
+                  key={type}
+                  label={ENTRY_TYPE_EMOJI[type]}
+                  name={t(`entryType.${type}`)}
+                  active={triggerTypes.has(type)}
+                  accent={ENTRY_TYPE_META[type].border}
+                  onClick={() => toggleTriggerType(type)}
                 />
               ))}
             </FilterRow>

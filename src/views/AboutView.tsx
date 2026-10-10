@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { HeartWatermark } from '../components/decor'
 import { Modal } from '../components/Modal'
+import { useI18n } from '../lib/i18n-context'
 import { useBackToClose } from '../lib/use-back-to-close'
 import { COLORS } from '../lib/theme'
 import { GerdView } from './GerdView'
 
 const PHOTO_URL = `${import.meta.env.BASE_URL}us.jpeg`
-const APP_VERSION = 'v1.0'
+const APP_VERSION = 'v1.1'
 
 type AboutRow = { emoji: string; label: string; onClick: () => void }
 
@@ -52,6 +53,7 @@ export function AboutView() {
   )
   const [showGerd, setShowGerd] = useState(false)
   const [photoOk, setPhotoOk] = useState(true)
+  const { t } = useI18n()
 
   useBackToClose(showGerd, () => setShowGerd(false))
 
@@ -60,61 +62,43 @@ export function AboutView() {
   const helpRows: AboutRow[] = [
     {
       emoji: '❓',
-      label: 'How To Use The App?',
+      label: t('about.howToUse'),
       onClick: () =>
-        setAlert({
-          title: 'How To Use The App?',
-          body: 'Baby, just call me if you have questions. Smh xxx',
-        }),
+        setAlert({ title: t('about.howToUse'), body: t('about.howToUse.body') }),
     },
     {
       emoji: '💜',
-      label: 'About This App',
+      label: t('about.aboutApp'),
       onClick: () =>
-        setAlert({
-          title: 'About This App',
-          body: 'Your boyfriend just really loves you. Xxxx',
-        }),
+        setAlert({ title: t('about.aboutApp'), body: t('about.aboutApp.body') }),
     },
-    { emoji: '📖', label: 'GERD Wiki', onClick: () => setShowGerd(true) },
+    { emoji: '📖', label: t('about.gerdWiki'), onClick: () => setShowGerd(true) },
   ]
 
   const rewardRows: AboutRow[] = [
     {
       emoji: '🎁',
-      label: 'Free Gift',
+      label: t('about.freeGift'),
       onClick: () =>
         window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank', 'noopener'),
     },
     {
       emoji: '🏍️',
-      label: 'Get A Free Ride',
-      onClick: () =>
-        setAlert({
-          title: 'Get A Free Ride',
-          body: "... On my bicycle. My queen. Xxx",
-        }),
+      label: t('about.ride'),
+      onClick: () => setAlert({ title: t('about.ride'), body: t('about.ride.body') }),
     },
     {
       emoji: '⭐',
-      label: 'Rate EtasEats',
-      onClick: () =>
-        setAlert({
-          title: 'Rate EtasEats',
-          body: "5 stars, obviously.",
-        }),
+      label: t('about.rate'),
+      onClick: () => setAlert({ title: t('about.rate'), body: t('about.rate.body') }),
     },
   ]
 
   const legalRows: AboutRow[] = [
     {
       emoji: '📄',
-      label: 'Terms & Privacy',
-      onClick: () =>
-        setAlert({
-          title: 'Terms & Privacy',
-          body: 'I own you 💜',
-        }),
+      label: t('about.terms'),
+      onClick: () => setAlert({ title: t('about.terms'), body: t('about.terms.body') }),
     },
   ]
 
@@ -135,10 +119,7 @@ export function AboutView() {
           <button
             type="button"
             onClick={() =>
-              setAlert({
-                title: 'Sup',
-                body: "If you ever see this, I'll give you a massage whenever you want 👀",
-              })
+              setAlert({ title: t('about.photo.title'), body: t('about.photo.body') })
             }
             className="tap h-28 w-28 overflow-hidden rounded-[28px] border border-card-border"
             style={{
@@ -168,13 +149,13 @@ export function AboutView() {
           <p className="mt-1 text-xs text-text-muted">{APP_VERSION}</p>
         </div>
 
-        <SectionTitle>Help</SectionTitle>
+        <SectionTitle>{t('about.help')}</SectionTitle>
         <LinkCard items={helpRows} />
 
-        <SectionTitle>Rewards</SectionTitle>
+        <SectionTitle>{t('about.rewards')}</SectionTitle>
         <LinkCard items={rewardRows} />
 
-        <SectionTitle>Legal</SectionTitle>
+        <SectionTitle>{t('about.legal')}</SectionTitle>
         <LinkCard items={legalRows} />
       </div>
 

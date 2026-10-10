@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SymptomEntry, SymptomTypeEnum, TriggerableEntry } from '../db/db'
 import { getAllSymptoms, getEntriesBefore, updateEntry } from '../db/entries'
-import { entryDateTime, formatGap, formatLongDate, parseDateKey } from '../lib/calendar'
+import { entryDateTime, parseDateKey } from '../lib/calendar'
+import { formatGap, formatLongDate } from '../lib/date-i18n'
 import { entryTitle } from '../lib/entryTypes'
+import { useI18n } from '../lib/i18n-context'
 import { type Period, periodStart, withinPeriod } from '../lib/period'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { useBackToClose } from '../lib/use-back-to-close'
@@ -25,6 +27,7 @@ export function LastSymptoms({
   const [groups, setGroups] = useState<Group[]>([])
   const [selected, setSelected] = useState<TriggerableEntry | null>(null)
   useBackToClose(selected !== null, () => setSelected(null))
+  const { t, lang } = useI18n()
 
   const load = useCallback(async () => {
     const start = periodStart(period, new Date())
@@ -64,7 +67,7 @@ export function LastSymptoms({
   if (groups.length === 0) {
     return (
       <p className="px-6 py-10 text-center text-sm text-text-muted">
-        No symptoms in this range. Add one on the calendar and it'll show up here.
+        {t('analysis.noSymptoms')}
       </p>
     )
   }
@@ -91,10 +94,10 @@ export function LastSymptoms({
                 className="font-display font-semibold"
                 style={{ color: ENTRY_TYPE_META.symptom.border }}
               >
-                {entryTitle(symptom)}
+                {entryTitle(symptom, t)}
               </span>
               <span className="shrink-0 text-xs text-text-muted">
-                {formatLongDate(parseDateKey(symptom.date))} · {symptom.time}
+                {formatLongDate(parseDateKey(symptom.date), lang)} · {symptom.time}
               </span>
             </div>
 
@@ -106,17 +109,16 @@ export function LastSymptoms({
 
             {priors.length === 0 ? (
               <p className="pl-1 text-sm text-text-muted">
-                Nothing entered within the last 48 hours of this Symptom Entry - are
-                you using the app babe? 👀
+                {t('analysis.nothingBefore')}
               </p>
             ) : (
               <>
                 <div className="flex items-center justify-between px-1 pb-1">
                   <span className="text-xs font-medium text-text-muted">
-                    Before this
+                    {t('analysis.beforeThis')}
                   </span>
                   <span className="text-xs font-medium text-text-muted">
-                    Possible Trigger?
+                    {t('form.possibleTrigger')}
                   </span>
                 </div>
                 {priors.map((p) => {
@@ -135,14 +137,14 @@ export function LastSymptoms({
                         className="flex min-w-0 flex-1 items-center gap-2 text-left active:opacity-70"
                       >
                         <span className="w-24 shrink-0 text-xs text-text-muted">
-                          {formatGap(mins)}
+                          {formatGap(mins, lang)}
                         </span>
                         <span
                           className="h-2 w-2 shrink-0 rounded-full"
                           style={{ backgroundColor: meta.border }}
                         />
                         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
-                          {entryTitle(p)}
+                          {entryTitle(p, t)}
                         </span>
                       </button>
                       <YesNoSwitch

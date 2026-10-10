@@ -1,6 +1,8 @@
 import type { Entry } from '../db/db'
-import { formatLongDate, parseDateKey } from '../lib/calendar'
+import { parseDateKey } from '../lib/calendar'
+import { formatLongDate } from '../lib/date-i18n'
 import { entryTitle } from '../lib/entryTypes'
+import { useI18n } from '../lib/i18n-context'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { PrintTrim } from './decor'
 
@@ -13,6 +15,7 @@ export function TrackerDayCard({
   entries: Entry[]
   onSelect: (entry: Entry) => void
 }) {
+  const { t, lang } = useI18n()
   return (
     <div
       className="overflow-hidden rounded-xl border"
@@ -29,10 +32,11 @@ export function TrackerDayCard({
             className="font-display font-semibold"
             style={{ color: ENTRY_TYPE_META.symptom.border }}
           >
-            {formatLongDate(parseDateKey(date))}
+            {formatLongDate(parseDateKey(date), lang)}
           </span>
           <span className="shrink-0 text-xs text-text-muted">
-            {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+            {entries.length}{' '}
+            {entries.length === 1 ? t('tracker.entry') : t('tracker.entries')}
           </span>
         </div>
 
@@ -52,7 +56,7 @@ export function TrackerDayCard({
                 style={{ backgroundColor: ENTRY_TYPE_META[e.entryType].border }}
               />
               <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
-                {entryTitle(e)}
+                {entryTitle(e, t)}
               </span>
               {flagged && (
                 <span className="shrink-0" role="img" aria-label="possible trigger">

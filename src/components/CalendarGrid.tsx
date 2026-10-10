@@ -9,9 +9,10 @@ import {
   timeSlots,
   timeToMinutes,
   toDateKey,
-  weekdayShort,
 } from '../lib/calendar'
+import { weekdayShort } from '../lib/date-i18n'
 import { entryTitle } from '../lib/entryTypes'
+import { useI18n } from '../lib/i18n-context'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { useDecor } from '../lib/theme-context'
 import { PrintTrim, Star } from './decor'
@@ -45,6 +46,7 @@ export function CalendarGrid({
   const slots = timeSlots()
   const scrollRef = useRef<HTMLDivElement>(null)
   const decor = useDecor()
+  const { t, lang } = useI18n()
   // Captured once on mount; used only to highlight today's column.
   const [today] = useState(() => new Date())
 
@@ -103,7 +105,7 @@ export function CalendarGrid({
                   isToday && decor.elevenRow ? { color: COLORS.primaryAction } : undefined
                 }
               >
-                {weekdayShort(d)}
+                {weekdayShort(d, lang)}
               </span>
               <span
                 className={`relative mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-semibold ${
@@ -194,12 +196,12 @@ export function CalendarGrid({
                 style={isToday ? { backgroundColor: COLORS.todayColumn } : undefined}
               >
                 {/* Tappable empty slots + grid lines. */}
-                {slots.map((t, i) => (
+                {slots.map((slot, i) => (
                   <button
-                    key={t}
+                    key={slot}
                     type="button"
-                    onClick={() => onSlotTap(key, t)}
-                    aria-label={`${weekdayShort(d)} ${dayNumber(d)}, ${slotRangeLabel(t)}`}
+                    onClick={() => onSlotTap(key, slot)}
+                    aria-label={`${weekdayShort(d, lang)} ${dayNumber(d)}, ${slotRangeLabel(slot)}`}
                     className={`block w-full border-t ${
                       i % 2 === 0
                         ? 'border-grid-line'
@@ -237,7 +239,7 @@ export function CalendarGrid({
                     >
                       <span className="block truncate">
                         {isTrigger && '🚩 '}
-                        {entryTitle(e)}
+                        {entryTitle(e, t)}
                       </span>
                     </button>
                   )

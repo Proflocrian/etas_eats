@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+import { useI18n } from '../lib/i18n-context'
 import { type Period, PERIOD_OPTIONS } from '../lib/period'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { FilterChip } from './FilterChip'
@@ -19,13 +20,14 @@ export function PeriodRow({
   value: Period
   onChange: (p: Period) => void
 }) {
+  const { t } = useI18n()
   return (
     <FilterRow>
       {PERIOD_OPTIONS.map((o, i) => (
         <Fragment key={o.id}>
           {i === 1 && <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />}
           <FilterChip
-            label={o.label}
+            label={t(`period.${o.id}`)}
             active={value === o.id}
             accent={COLORS.primaryAction}
             onClick={() => onChange(o.id)}
@@ -37,6 +39,7 @@ export function PeriodRow({
 }
 
 export function FilterCard({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n()
   return (
     <div
       className="mx-3 mb-2 overflow-hidden rounded-xl border"
@@ -52,7 +55,7 @@ export function FilterCard({ children }: { children: React.ReactNode }) {
           className="mb-1.5 font-display font-semibold"
           style={{ color: ENTRY_TYPE_META.symptom.border }}
         >
-          Filters
+          {t('filter.filters')}
         </h2>
         <FilterDivider />
         <div className="text-xs">{children}</div>

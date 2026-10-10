@@ -11,6 +11,7 @@ import '@fontsource/yellowtail' // Trashy 2000s display
 import '@fontsource-variable/quicksand' // 11:11
 import './index.css'
 import App from './App.tsx'
+import { LanguageProvider } from './lib/i18n-context'
 import { applyTheme, loadThemeId } from './lib/theme'
 import { ThemeProvider } from './lib/theme-context'
 
@@ -20,7 +21,9 @@ applyTheme(loadThemeId())
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
     </ThemeProvider>
   </StrictMode>,
 )

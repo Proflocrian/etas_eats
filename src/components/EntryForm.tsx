@@ -8,6 +8,7 @@ import {
   slotRangeLabel,
   timeSlots,
 } from '../lib/calendar'
+import { useI18n } from '../lib/i18n-context'
 import { useDecor } from '../lib/theme-context'
 import { DateTimeDialog } from './DateTimeDialog'
 import { Modal } from './Modal'
@@ -16,7 +17,6 @@ import { YesNoSwitch } from './YesNoSwitch'
 import {
   ACTIVITY_PLACEHOLDERS,
   FOOD_PLACEHOLDERS,
-  SYMPTOM_TYPE_LABELS,
   SYMPTOM_TYPE_OPTIONS,
 } from '../lib/entryTypes'
 import {
@@ -80,6 +80,7 @@ export function EntryForm({
 }) {
   const isEdit = entry !== undefined
   const decor = useDecor()
+  const { t } = useI18n()
 
   const [dateKey, setDateKey] = useState(initialDateKey)
   const [time, setTime] = useState(initialTime)
@@ -294,13 +295,13 @@ export function EntryForm({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Cancel"
+            aria-label={t('common.cancel')}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-input-bg text-xl text-text-muted active:opacity-70"
           >
             ✕
           </button>
           <span className="font-display text-base font-bold text-text-primary">
-            {isEdit ? 'Edit Entry' : 'New Entry'}
+            {isEdit ? t('form.editEntry') : t('form.newEntry')}
           </span>
           <button
             type="button"
@@ -313,7 +314,7 @@ export function EntryForm({
             } ${decor.bedazzleSave && !missingRequired && !saving && !unchanged ? 'tt-save' : ''}`}
             style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
           >
-            Save
+            {t('common.save')}
             {decor.bedazzleSave && !missingRequired && !saving && (
               <span className="tt-twinkle absolute -bottom-1 -right-1" aria-hidden="true">
                 <Star size={12} color="#FFF3B0" />
@@ -333,10 +334,10 @@ export function EntryForm({
           {isEdit ? (
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-text-primary">
-                Entry Type:
+                {t('form.entryType')}
               </span>
               <span
-                aria-label={ENTRY_TYPE_META[entryType].label}
+                aria-label={t(`entryType.${entryType}`)}
                 className={`${PILL_CLASS} font-semibold`}
                 style={{
                   backgroundColor: PILL_BG_COLOUR,
@@ -348,17 +349,17 @@ export function EntryForm({
             </div>
           ) : (
             <div className="flex gap-2 overflow-x-auto">
-              {ENTRY_TYPE_ORDER.map((t) => {
-                const meta = ENTRY_TYPE_META[t]
+              {ENTRY_TYPE_ORDER.map((type) => {
+                const meta = ENTRY_TYPE_META[type]
                 return (
                   <Pill
-                    key={t}
-                    selected={entryType === t}
-                    onClick={() => setEntryType(t)}
-                    ariaLabel={meta.label}
+                    key={type}
+                    selected={entryType === type}
+                    onClick={() => setEntryType(type)}
+                    ariaLabel={t(`entryType.${type}`)}
                     accent={meta.border}
                   >
-                    {ENTRY_TYPE_EMOJI[t]}
+                    {ENTRY_TYPE_EMOJI[type]}
                   </Pill>
                 )
               })}
@@ -369,7 +370,7 @@ export function EntryForm({
           <div className="flex gap-2">
             <input
               type="date"
-              aria-label="Date"
+              aria-label={t('form.date')}
               className={inputClass}
               style={inputStyle}
               value={dateKeyToInput(dateKey)}
@@ -378,15 +379,15 @@ export function EntryForm({
               }}
             />
             <select
-              aria-label="Time slot"
+              aria-label={t('form.timeSlot')}
               className={inputClass}
               style={inputStyle}
               value={time}
               onChange={(e) => setTime(e.target.value)}
             >
-              {timeSlots().map((t) => (
-                <option key={t} value={t}>
-                  {slotRangeLabel(t)}
+              {timeSlots().map((slot) => (
+                <option key={slot} value={slot}>
+                  {slotRangeLabel(slot)}
                 </option>
               ))}
             </select>
@@ -399,7 +400,7 @@ export function EntryForm({
             <>
               <div>
                 <label className={labelClass} htmlFor="ef-food">
-                  Meal | Snack | Drink
+                  {t('form.foodLabel')}
                 </label>
                 <input
                   id="ef-food"
@@ -412,7 +413,8 @@ export function EntryForm({
               </div>
               <div>
                 <label className={labelClass} htmlFor="ef-qty">
-                  Quantity <span className={optionalClass}>(optional)</span>
+                  {t('form.quantity')}{' '}
+                  <span className={optionalClass}>{t('form.optional')}</span>
                 </label>
                 <input
                   id="ef-qty"
@@ -430,7 +432,7 @@ export function EntryForm({
           {entryType === 'activity' && (
             <div>
               <label className={labelClass} htmlFor="ef-activity">
-                Activity
+                {t('entryType.activity')}
               </label>
               <input
                 id="ef-activity"
@@ -453,7 +455,7 @@ export function EntryForm({
                   onClick={() => toggleSymptom(st)}
                   accent={ENTRY_TYPE_META.symptom.border}
                 >
-                  {SYMPTOM_TYPE_LABELS[st]}
+                  {t(`symptom.${st}`)}
                 </Pill>
               ))}
             </div>
@@ -464,7 +466,7 @@ export function EntryForm({
           {(entryType === 'food' || entryType === 'activity') && (
             <div className="flex items-center justify-between">
               <span className="text-sm font-bold text-text-primary">
-                Possible Trigger?
+                {t('form.possibleTrigger')}
               </span>
               <YesNoSwitch
                 value={possibleTrigger}
@@ -478,7 +480,8 @@ export function EntryForm({
           {/* Notes (all types) */}
           <div>
             <label className={labelClass} htmlFor="ef-notes">
-              Notes <span className={optionalClass}>(optional)</span>
+              {t('form.notes')}{' '}
+              <span className={optionalClass}>{t('form.optional')}</span>
             </label>
             <textarea
               id="ef-notes"
@@ -498,7 +501,7 @@ export function EntryForm({
               className="self-start text-sm font-medium text-primary"
               style={decor.sheetWave ? { color: '#2B6CB0' } : undefined}
             >
-              Duplicate to another time
+              {t('form.duplicate')}
             </button>
           )}
 
@@ -506,14 +509,16 @@ export function EntryForm({
           {isEdit &&
             (confirmDelete ? (
               <div className="flex items-center justify-between rounded-lg bg-danger-bg px-3 py-2">
-                <span className="text-sm text-danger-text">Are you sure babe?</span>
+                <span className="text-sm text-danger-text">
+                  {t('form.deleteConfirm')}
+                </span>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(false)}
                     className="rounded-lg px-3 py-1.5 text-sm text-text-secondary"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="button"
@@ -521,7 +526,7 @@ export function EntryForm({
                     disabled={saving}
                     className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-40"
                   >
-                    Delete
+                    {t('common.delete')}
                   </button>
                 </div>
               </div>
@@ -532,7 +537,7 @@ export function EntryForm({
                 className="self-start text-sm font-medium text-danger-text"
                 style={decor.sheetWave ? { color: '#C53030' } : undefined}
               >
-                Delete entry
+                {t('form.deleteEntry')}
               </button>
             ))}
         </div>
@@ -541,21 +546,21 @@ export function EntryForm({
 
       {duplicating && (
         <DateTimeDialog
-          title="Duplicate to"
-          confirmLabel="Duplicate"
+          title={t('form.duplicateTo')}
+          confirmLabel={t('form.duplicateShort')}
           initialDateKey={dateKey}
           initialTime={time}
           onCancel={() => setDuplicating(false)}
-          onConfirm={(d, t) => handleDuplicate(d, t)}
+          onConfirm={(d, tm) => handleDuplicate(d, tm)}
         />
       )}
 
       {confirmFuture && (
         <Modal
           variant="confirm"
-          title="Are you sure you wanna save this entry? 👀"
-          bodyMessage="This is in the future - have you time travelled babe? If so, give me gambling tips xxx"
-          confirmLabel="Save"
+          title={t('form.future.title')}
+          bodyMessage={t('form.future.body')}
+          confirmLabel={t('common.save')}
           onConfirm={doSave}
           onClose={() => setConfirmFuture(false)}
         />

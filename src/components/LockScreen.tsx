@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useI18n } from '../lib/i18n-context'
 import { UNLOCK_CODE, setUnlocked } from '../lib/lock'
 import { COLORS } from '../lib/theme'
 
 export function LockScreen({ onUnlock }: { onUnlock: () => void }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
+  const { t } = useI18n()
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,9 +39,7 @@ export function LockScreen({ onUnlock }: { onUnlock: () => void }) {
             Eats
           </span>
         </h1>
-        <p className="mb-6 text-sm text-text-secondary">
-          Thank you for installing EtasEats. Please use the provided code to use.
-        </p>
+        <p className="mb-6 text-sm text-text-secondary">{t('lock.message')}</p>
 
         <form onSubmit={submit} className="flex flex-col gap-3">
           <input
@@ -48,23 +48,21 @@ export function LockScreen({ onUnlock }: { onUnlock: () => void }) {
               setCode(e.target.value)
               setError(false)
             }}
-            placeholder="Enter code"
+            placeholder={t('lock.placeholder')}
             autoCapitalize="characters"
             autoCorrect="off"
             spellCheck={false}
             className="w-full rounded-lg border border-input-border bg-input-bg px-3 py-2 text-center text-base text-text-primary outline-none focus:border-primary"
           />
           {error && (
-            <p className="text-sm font-medium text-danger-text">
-              Incorrect voucher code, please double check your voucher.
-            </p>
+            <p className="text-sm font-medium text-danger-text">{t('lock.wrongCode')}</p>
           )}
           <button
             type="submit"
             className="tap rounded-lg px-4 py-2.5 text-sm font-semibold"
             style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
           >
-            Unlock
+            {t('lock.unlock')}
           </button>
         </form>
       </div>

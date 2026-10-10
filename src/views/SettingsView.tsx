@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { clearAllEntries, getAllEntries } from '../db/entries'
 import { entriesToCsv } from '../lib/csv'
+import { useI18n } from '../lib/i18n-context'
+import type { Lang } from '../lib/i18n'
 import { setUnlocked } from '../lib/lock'
 import { COLORS, type Palette, type ThemeId, THEMES } from '../lib/theme'
 import { useTheme } from '../lib/theme-context'
@@ -21,7 +23,7 @@ const SWATCH_KEYS: (keyof Palette)[] = [
 
 const LANGUAGES: { id: string; label: string; flag: string }[] = [
   { id: 'en', label: 'English', flag: '🇬🇧' },
-  { id: 'it', label: 'Italiano', flag: '🇮🇹' },
+  { id: 'it', label: 'Italiano 🤌🤌', flag: '🇮🇹' },
   { id: 'nl', label: 'Nederlands (jij moet practice)', flag: '🇳🇱' },
   { id: 'zh', label: '中國人', flag: '🇨🇳' },
 ]
@@ -45,7 +47,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export function SettingsView() {
   const { themeId, setTheme: selectTheme } = useTheme()
-  const [language, setLanguage] = useState('en') // placeholder, non-functional
+  const { lang: currentLang, setLang, t } = useI18n()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [alert, setAlert] = useState<{ title: string; body: React.ReactNode } | null>(
     null,
@@ -108,12 +110,12 @@ export function SettingsView() {
     >
       <HeartWatermark />
       <h1 className="font-display relative shrink-0 px-1 py-2 text-4xl font-extrabold text-text-primary">
-        Settings
+        {t('settings.title')}
       </h1>
 
       <div className="min-h-0 flex-1 overflow-y-auto pb-6">
         {/* Theme */}
-        <SectionTitle>Theme</SectionTitle>
+        <SectionTitle>{t('settings.theme')}</SectionTitle>
         <div className="flex flex-col gap-2">
           {(Object.keys(THEMES) as ThemeId[]).map((id) => {
             const theme = THEMES[id]
@@ -263,13 +265,13 @@ export function SettingsView() {
         </div>
 
         {/* Language */}
-        <SectionTitle>Language</SectionTitle>
+        <SectionTitle>{t('settings.language')}</SectionTitle>
         <div
           className="overflow-hidden rounded-xl border border-card-border"
           style={{ backgroundColor: COLORS.settingsButtonBg }}
         >
           {LANGUAGES.map((lang, i) => {
-            const active = lang.id === language
+            const active = lang.id === currentLang
             return (
               <button
                 key={lang.id}
@@ -277,7 +279,7 @@ export function SettingsView() {
                 onClick={() =>
                   lang.id === 'zh'
                     ? setAlert({ title: '傻女孩', body: '你不會說中文' })
-                    : setLanguage(lang.id)
+                    : setLang(lang.id as Lang)
                 }
                 aria-pressed={active}
                 className={`flex w-full items-center justify-between px-4 py-3 text-left ${
@@ -305,7 +307,7 @@ export function SettingsView() {
         </div>
 
         {/* Actions */}
-        <SectionTitle>Data & Support</SectionTitle>
+        <SectionTitle>{t('settings.dataSupport')}</SectionTitle>
         <div
           className="overflow-hidden rounded-xl border border-card-border"
           style={{ backgroundColor: COLORS.settingsButtonBg }}
@@ -319,7 +321,9 @@ export function SettingsView() {
               <span className="text-xl" aria-hidden="true">
                 📤
               </span>
-              <span className="text-base text-text-primary">Export Data</span>
+              <span className="text-base text-text-primary">
+                {t('settings.exportData')}
+              </span>
             </span>
             <span className="text-text-muted" aria-hidden="true">
               ›
@@ -335,7 +339,7 @@ export function SettingsView() {
                 📩
               </span>
               <span className="text-base text-text-primary">
-                Request Features / Bug Support
+                {t('settings.requestFeatures')}
               </span>
             </span>
             <span className="text-text-muted" aria-hidden="true">
@@ -351,7 +355,7 @@ export function SettingsView() {
               <span className="text-xl" aria-hidden="true">
                 🎁
               </span>
-              <span className="text-base text-text-primary">Donate</span>
+              <span className="text-base text-text-primary">{t('settings.donate')}</span>
             </span>
             <span className="text-text-muted" aria-hidden="true">
               ›
@@ -360,7 +364,7 @@ export function SettingsView() {
         </div>
 
         {/* Battery */}
-        <SectionTitle>Battery</SectionTitle>
+        <SectionTitle>{t('settings.battery')}</SectionTitle>
         <div
           className="overflow-hidden rounded-xl border border-card-border"
           style={{ backgroundColor: COLORS.settingsButtonBg }}
@@ -383,7 +387,9 @@ export function SettingsView() {
               <span className="text-xl" aria-hidden="true">
                 🪫
               </span>
-              <span className="text-base text-text-primary">Check Battery</span>
+              <span className="text-base text-text-primary">
+                {t('settings.checkBattery')}
+              </span>
             </span>
             <span className="text-text-muted" aria-hidden="true">
               ›
@@ -392,7 +398,7 @@ export function SettingsView() {
         </div>
 
         {/* Danger Area */}
-        <SectionTitle>Danger Area</SectionTitle>
+        <SectionTitle>{t('settings.dangerArea')}</SectionTitle>
         <div
           className="overflow-hidden rounded-xl border-2 border-danger-border"
           style={{ backgroundColor: COLORS.dangerBg }}
@@ -410,7 +416,7 @@ export function SettingsView() {
                 🎫
               </span>
               <span className="text-base font-semibold text-danger-text">
-                Remove Attached Vouchers
+                {t('settings.removeVouchers')}
               </span>
             </span>
             <span className="text-danger-text opacity-60" aria-hidden="true">
@@ -427,7 +433,7 @@ export function SettingsView() {
                 🗑️
               </span>
               <span className="text-base font-semibold text-danger-text">
-                Delete All Data
+                {t('settings.deleteAll')}
               </span>
             </span>
             <span className="text-danger-text opacity-60" aria-hidden="true">
@@ -447,7 +453,6 @@ export function SettingsView() {
               all entries. Are you sure!?
             </>
           }
-          confirmLabel="Yes"
           onConfirm={async () => {
             await clearAllEntries()
             setUnlocked(false)

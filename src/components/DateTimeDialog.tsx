@@ -5,6 +5,7 @@ import {
   slotRangeLabel,
   timeSlots,
 } from '../lib/calendar'
+import { useI18n } from '../lib/i18n-context'
 import { COLORS } from '../lib/theme'
 
 const inputClass =
@@ -28,6 +29,7 @@ export function DateTimeDialog({
 }) {
   const [dateKey, setDateKey] = useState(initialDateKey)
   const [time, setTime] = useState(initialTime)
+  const { t } = useI18n()
 
   return (
     <div
@@ -45,7 +47,7 @@ export function DateTimeDialog({
         <div className="flex flex-col gap-2">
           <input
             type="date"
-            aria-label="Date"
+            aria-label={t('form.date')}
             className={inputClass}
             value={dateKeyToInput(dateKey)}
             onChange={(e) => {
@@ -53,14 +55,14 @@ export function DateTimeDialog({
             }}
           />
           <select
-            aria-label="Time slot"
+            aria-label={t('form.timeSlot')}
             className={inputClass}
             value={time}
             onChange={(e) => setTime(e.target.value)}
           >
-            {timeSlots().map((t) => (
-              <option key={t} value={t}>
-                {slotRangeLabel(t)}
+            {timeSlots().map((slot) => (
+              <option key={slot} value={slot}>
+                {slotRangeLabel(slot)}
               </option>
             ))}
           </select>
@@ -72,7 +74,7 @@ export function DateTimeDialog({
             onClick={onCancel}
             className="rounded-lg px-4 py-1.5 text-sm text-text-secondary"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="button"
