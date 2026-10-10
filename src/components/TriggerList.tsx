@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { TriggerableEntry } from '../db/db'
 import { getPossibleTriggers } from '../db/entries'
 import { entryTitle } from '../lib/entryTypes'
+import { useI18n } from '../lib/i18n-context'
 import { type Period, periodStart, withinPeriod } from '../lib/period'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { useBackToClose } from '../lib/use-back-to-close'
@@ -19,6 +20,7 @@ export function TriggerList({
   const [items, setItems] = useState<TriggerableEntry[]>([])
   const [selected, setSelected] = useState<TriggerableEntry | null>(null)
   useBackToClose(selected !== null, () => setSelected(null))
+  const { t } = useI18n()
 
   const load = useCallback(async () => {
     const start = periodStart(period, new Date())
@@ -40,7 +42,7 @@ export function TriggerList({
   if (items.length === 0) {
     return (
       <p className="px-6 py-10 text-center text-sm text-text-muted">
-        No possible triggers in this range. Tick some under Last Symptoms.
+        {t('analysis.noTriggers')}
       </p>
     )
   }
@@ -67,7 +69,7 @@ export function TriggerList({
               style={{ backgroundColor: ENTRY_TYPE_META[e.entryType].border }}
             />
             <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
-              {entryTitle(e)}
+              {entryTitle(e, t)}
             </span>
             <span className="shrink-0 text-text-muted" aria-hidden="true">
               ›

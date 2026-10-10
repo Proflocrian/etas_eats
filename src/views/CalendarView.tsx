@@ -9,11 +9,11 @@ import {
   addWeeks,
   currentSlot,
   isSameDay,
-  monthAbbr,
   shortYear,
   toDateKey,
   weekDays,
 } from '../lib/calendar'
+import { monthAbbr } from '../lib/date-i18n'
 import {
   COLORS,
   ENTRY_TYPE_EMOJI,
@@ -21,6 +21,7 @@ import {
   ENTRY_TYPE_ORDER,
   FILTER_CHIP_META,
 } from '../lib/theme'
+import { useI18n } from '../lib/i18n-context'
 import { useDecor } from '../lib/theme-context'
 import { useBackToClose } from '../lib/use-back-to-close'
 import { FilterChip } from '../components/FilterChip'
@@ -45,6 +46,7 @@ function visibleDays(anchor: Date, mode: ViewMode): Date[] {
 
 export function CalendarView() {
   const decor = useDecor()
+  const { t, lang } = useI18n()
   // `anchor` is any date within the visible range. State is seeded from the
   // session-remembered values so it survives tab switches.
   const [anchor, setAnchor] = useState<Date>(() => savedAnchor ?? new Date())
@@ -94,10 +96,10 @@ export function CalendarView() {
     first.getFullYear() === last.getFullYear()
   const sameYear = first.getFullYear() === last.getFullYear()
   const monthLabel = sameMonth
-    ? `${monthAbbr(first)} ${shortYear(first)}`
+    ? `${monthAbbr(first, lang)} ${shortYear(first)}`
     : sameYear
-      ? `${monthAbbr(first)}-${monthAbbr(last)} ${shortYear(last)}`
-      : `${monthAbbr(first)} ${shortYear(first)}-${monthAbbr(last)} ${shortYear(last)}`
+      ? `${monthAbbr(first, lang)}-${monthAbbr(last, lang)} ${shortYear(last)}`
+      : `${monthAbbr(first, lang)} ${shortYear(first)}-${monthAbbr(last, lang)} ${shortYear(last)}`
 
   // Apply the type + trigger filters before handing entries to the grid.
   const needsFilter = activeTypes.size > 0 || onlyTriggers
@@ -138,7 +140,6 @@ export function CalendarView() {
     setCreating({ dateKey: toDateKey(date), time: currentSlot() })
   }
 
-  const unit = viewMode === 'week' ? 'week' : 'day'
   const arrowBtn =
     'flex h-8 w-7 shrink-0 items-center justify-center rounded-lg text-xl text-text-secondary active:bg-divider'
 
@@ -164,7 +165,7 @@ export function CalendarView() {
           <button
             type="button"
             className={arrowBtn}
-            aria-label={`Previous ${unit}`}
+            aria-label={t('cal.previous')}
             onClick={() => step(-1)}
           >
             ‹
@@ -175,7 +176,7 @@ export function CalendarView() {
           <button
             type="button"
             className={arrowBtn}
-            aria-label={`Next ${unit}`}
+            aria-label={t('cal.next')}
             onClick={() => step(1)}
           >
             ›
@@ -188,14 +189,12 @@ export function CalendarView() {
             className="tap rounded-full px-3.5 py-2 text-sm font-medium text-text-secondary"
             style={{ backgroundColor: COLORS.pillBg }}
           >
-            Today
+            {t('cal.today')}
           </button>
           <button
             type="button"
             onClick={() => setViewMode(viewMode === 'week' ? 'day' : 'week')}
-            aria-label={
-              viewMode === 'week' ? 'Switch to Day view' : 'Switch to Week view'
-            }
+            aria-label={viewMode === 'week' ? t('cal.switchToDay') : t('cal.switchToWeek')}
             className="relative flex w-28 shrink-0 rounded-full p-0.5 text-sm"
             style={{ backgroundColor: COLORS.switchTrack }}
           >
@@ -212,10 +211,12 @@ export function CalendarView() {
               <span
                 key={m}
                 className={`relative z-10 flex-1 py-1.5 text-center ${
+                  lang === 'it' ? 'text-[10px]' : ''
+                } ${
                   viewMode === m ? 'font-semibold text-segment-active-text' : 'text-text-secondary'
                 }`}
               >
-                {m === 'week' ? 'Week' : 'Day'}
+                {m === 'week' ? t('cal.week') : t('cal.day')}
               </span>
             ))}
           </button>
@@ -225,31 +226,31 @@ export function CalendarView() {
       {/* Row 2: filters (full width, scrollable) */}
       <div className="relative flex shrink-0 items-center gap-1.5 overflow-x-auto px-3 pb-2 text-sm">
         <FilterChip
-          label={FILTER_CHIP_META.all.display}
-          name={FILTER_CHIP_META.all.label}
+          label={t('filter.all')}
+          name={t('filter.allTypes')}
           className="ml-auto"
           active={activeTypes.size === 0}
           accent={FILTER_CHIP_META.all.border}
           onClick={() => setActiveTypes(new Set())}
         />
         <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />
-        {ENTRY_TYPE_ORDER.map((t) => {
-          const meta = ENTRY_TYPE_META[t]
+        {ENTRY_TYPE_ORDER.map((type) => {
+          const meta = ENTRY_TYPE_META[type]
           return (
             <FilterChip
-              key={t}
-              label={ENTRY_TYPE_EMOJI[t]}
-              name={meta.label}
-              active={activeTypes.has(t)}
+              key={type}
+              label={ENTRY_TYPE_EMOJI[type]}
+              name={t(`entryType.${type}`)}
+              active={activeTypes.has(type)}
               accent={meta.border}
-              onClick={() => toggleType(t)}
+              onClick={() => toggleType(type)}
             />
           )
         })}
         <span className="mx-0.5 w-px shrink-0 self-stretch bg-divider" />
         <FilterChip
           label={FILTER_CHIP_META.trigger.display}
-          name={FILTER_CHIP_META.trigger.label}
+          name={t('filter.onlyTriggers')}
           active={onlyTriggers}
           accent={FILTER_CHIP_META.trigger.border}
           onClick={() => setOnlyTriggers((v) => !v)}

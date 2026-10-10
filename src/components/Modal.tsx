@@ -1,3 +1,4 @@
+import { useI18n } from '../lib/i18n-context'
 import { COLORS, type Palette } from '../lib/theme'
 
 // Echoes the theme swatch row on the Settings theme cards.
@@ -20,6 +21,7 @@ type ModalProps = {
 
 export function Modal(props: ModalProps) {
   const { title, bodyMessage, onClose } = props
+  const { t } = useI18n()
   // Truly modal: backdrop taps are swallowed, not dismissed. Closes only via the
   // buttons, or via device Back (handled by the host surface's own back-to-close).
   return (
@@ -60,7 +62,7 @@ export function Modal(props: ModalProps) {
               className="tap rounded-lg px-6 py-2 text-sm font-semibold"
               style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
             >
-              {props.okLabel ?? 'OK'}
+              {props.okLabel ?? t('common.ok')}
             </button>
           </div>
         ) : (
@@ -71,7 +73,7 @@ export function Modal(props: ModalProps) {
               className="tap rounded-lg border px-5 py-2 text-sm font-medium text-text-secondary"
               style={{ backgroundColor: COLORS.pillBg, borderColor: COLORS.pillBorderIdle }}
             >
-              {props.cancelLabel ?? 'Cancel'}
+              {props.cancelLabel ?? t('common.cancel')}
             </button>
             <button
               type="button"
@@ -82,7 +84,7 @@ export function Modal(props: ModalProps) {
               className="tap rounded-lg px-5 py-2 text-sm font-semibold"
               style={{ background: 'var(--save-bg)', color: 'var(--save-text)' }}
             >
-              {props.confirmLabel ?? 'Yes'}
+              {props.confirmLabel ?? t('common.yes')}
             </button>
           </div>
         )}

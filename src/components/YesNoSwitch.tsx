@@ -1,3 +1,4 @@
+import { useI18n } from '../lib/i18n-context'
 import { COLORS } from '../lib/theme'
 
 // A No/Yes flip-switch. Clicking anywhere toggles it; a highlight slides between
@@ -19,6 +20,7 @@ export function YesNoSwitch({
   accentText?: string // "Yes" thumb label colour (pairs with accentColor)
 }) {
   const pad = size === 'sm' ? 'px-2.5 py-0.5 text-xs' : 'px-4 py-0.5 text-sm'
+  const { t } = useI18n()
   return (
     <button
       type="button"
@@ -42,13 +44,13 @@ export function YesNoSwitch({
           className={`flex-1 text-center ${pad} ${value ? '' : 'font-semibold'}`}
           style={{ color: value ? COLORS.textMuted : COLORS.switchNoText }}
         >
-          No
+          {t('common.no')}
         </span>
         <span
           className={`flex-1 text-center ${pad} ${value ? 'font-semibold' : ''}`}
           style={{ color: value ? accentText : COLORS.textMuted }}
         >
-          Yes
+          {t('common.yes')}
         </span>
       </span>
     </button>

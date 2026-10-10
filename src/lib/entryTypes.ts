@@ -53,14 +53,17 @@ export const SYMPTOM_TYPE_OPTIONS: SymptomTypeEnum[] = [
   'other',
 ]
 
-// The text shown on a calendar chip for an entry.
-export function entryTitle(entry: Entry): string {
+// The text shown on a calendar chip for an entry. Pass `t` to translate the symptom
+// labels; without it (e.g. CSV export) they fall back to the English labels.
+export function entryTitle(entry: Entry, t?: (key: string) => string): string {
   switch (entry.entryType) {
     case 'food':
       return entry.food
     case 'activity':
       return entry.activity
     case 'symptom':
-      return entry.symptomTypes.map((s) => SYMPTOM_TYPE_LABELS[s]).join(', ')
+      return entry.symptomTypes
+        .map((s) => (t ? t(`symptom.${s}`) : SYMPTOM_TYPE_LABELS[s]))
+        .join(', ')
   }
 }

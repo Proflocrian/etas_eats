@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react'
 import type { TriggerableEntry } from '../db/db'
 import { updateEntry } from '../db/entries'
-import { formatLongDate, parseDateKey, slotRangeLabel } from '../lib/calendar'
+import { parseDateKey, slotRangeLabel } from '../lib/calendar'
+import { formatLongDate } from '../lib/date-i18n'
 import { entryTitle } from '../lib/entryTypes'
+import { useI18n } from '../lib/i18n-context'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { useDecor } from '../lib/theme-context'
 import { SheetGrabber, WaveAccent } from './decor'
@@ -22,6 +24,7 @@ export function EntryDetailSheet({
   const [possibleTrigger, setPossibleTrigger] = useState(entry.possibleTrigger)
   const meta = ENTRY_TYPE_META[entry.entryType]
   const decor = useDecor()
+  const { t, lang } = useI18n()
 
   // Swipe-down-to-dismiss (matches EntryForm). Drag starts only at scrollTop 0;
   // pulling past a third of the sheet height closes.
@@ -58,15 +61,17 @@ export function EntryDetailSheet({
     onChanged()
   }
 
-  const rows: { label: string; value: string }[] = [{ label: 'Type', value: meta.label }]
+  const rows: { label: string; value: string }[] = [
+    { label: t('detail.type'), value: t(`entryType.${entry.entryType}`) },
+  ]
   if (entry.entryType === 'food' && entry.quantity) {
-    rows.push({ label: 'Quantity', value: entry.quantity })
+    rows.push({ label: t('form.quantity'), value: entry.quantity })
   }
   rows.push({
-    label: 'When',
-    value: `${formatLongDate(parseDateKey(entry.date))} · ${slotRangeLabel(entry.time)}`,
+    label: t('detail.when'),
+    value: `${formatLongDate(parseDateKey(entry.date), lang)} · ${slotRangeLabel(entry.time)}`,
   })
-  if (entry.notes) rows.push({ label: 'Notes', value: entry.notes })
+  if (entry.notes) rows.push({ label: t('form.notes'), value: entry.notes })
 
   return (
     <div
@@ -116,13 +121,13 @@ export function EntryDetailSheet({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('common.close')}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-input-bg text-xl text-text-muted active:opacity-70"
           >
             ✕
           </button>
           <span className="font-display text-base font-bold text-text-primary">
-            Entry Details
+            {t('detail.title')}
           </span>
           <span className="w-9" />
         </div>
@@ -134,7 +139,7 @@ export function EntryDetailSheet({
               style={{ backgroundColor: meta.border }}
             />
             <span className="font-display text-lg font-semibold text-text-primary">
-              {entryTitle(entry)}
+              {entryTitle(entry, t)}
             </span>
           </div>
 
@@ -149,7 +154,7 @@ export function EntryDetailSheet({
 
           <div className="flex items-center justify-between border-t border-divider pt-3">
             <span className="text-sm font-medium text-text-secondary">
-              Possible Trigger?
+              {t('form.possibleTrigger')}
             </span>
             <YesNoSwitch
               value={possibleTrigger}

@@ -1,15 +1,10 @@
+import { useI18n } from '../lib/i18n-context'
 import { COLORS, TAB_EMOJI } from '../lib/theme'
 import { useDecor } from '../lib/theme-context'
 
 export type Tab = 'calendar' | 'tracker' | 'analysis' | 'settings' | 'about'
 
-const ITEMS: { tab: Tab; label: string }[] = [
-  { tab: 'calendar', label: 'Calendar' },
-  { tab: 'tracker', label: 'Tracker' },
-  { tab: 'analysis', label: 'Analysis' },
-  { tab: 'settings', label: 'Settings' },
-  { tab: 'about', label: 'About' },
-]
+const TABS: Tab[] = ['calendar', 'tracker', 'analysis', 'settings', 'about']
 
 export function BottomNav({
   active,
@@ -19,6 +14,7 @@ export function BottomNav({
   onChange: (tab: Tab) => void
 }) {
   const decor = useDecor()
+  const { t } = useI18n()
   const print = !!decor.navPrint
   const velour = !!decor.navVelour
   const heartMark = !!decor.navHeartMark
@@ -41,8 +37,9 @@ export function BottomNav({
           style={{ background: 'var(--gold-line)' }}
         />
       )}
-      {ITEMS.map(({ tab, label }) => {
+      {TABS.map((tab) => {
         const isActive = tab === active
+        const label = t(`nav.${tab}`)
         return (
           <button
             key={tab}
