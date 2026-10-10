@@ -3,12 +3,22 @@ import { BottomNav, type Tab } from './components/BottomNav'
 import { LockScreen } from './components/LockScreen'
 import { Sparkles } from './components/decor'
 import { isUnlocked } from './lib/lock'
+import { isInstalledPwa } from './lib/pwa'
 import { useDecor } from './lib/theme-context'
 import { AboutView } from './views/AboutView'
 import { AnalysisView } from './views/AnalysisView'
 import { CalendarView } from './views/CalendarView'
+import { InstallPrompt } from './views/InstallPrompt'
 import { SettingsView } from './views/SettingsView'
 import { TrackerView } from './views/TrackerView'
+
+// Opened in a plain browser tab (not the installed PWA) → show the install
+// landing page instead of the app. In dev the page is never standalone, which
+// would trap you here, so dev skips it; append ?install to preview the screen.
+const forceInstall =
+  typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).has('install')
+const showInstall = forceInstall || (!import.meta.env.DEV && !isInstalledPwa())
 
 // 2000s background glimmer: stars scattered across the screen, twinkling in place.
 const BG_SPARKLES = [
@@ -58,6 +68,10 @@ function App() {
     if (next === tab) return
     window.history.pushState({ tab: next }, '')
     setTab(next)
+  }
+
+  if (showInstall) {
+    return <InstallPrompt />
   }
 
   if (!unlocked) {
