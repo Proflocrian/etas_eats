@@ -6,6 +6,7 @@ export const FOOD_PLACEHOLDERS: string[] = [
   'Cocktails With Bbz 🍸',
   'Matcha (Smh)',
   'Fish & Veggies (Nice!)',
+  'Scrambled Eggs 🥚 (Nice!)',
   'Pizza (Wtf Babe?)',
   'Spicy Noodles (Silly Girl)',
   'Sad Salad 🥗',
@@ -15,7 +16,7 @@ export const FOOD_PLACEHOLDERS: string[] = [
   'Smoothie (Pretending Its Healthy)',
   'Chocolate 🍫 (Emotional Support)',
   'Just Snacks Tbh',
-  'Water (Finally) 💧',
+  'Water (Finally!) 💧',
 ]
 
 export const ACTIVITY_PLACEHOLDERS: string[] = [
