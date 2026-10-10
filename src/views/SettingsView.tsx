@@ -67,8 +67,8 @@ export function SettingsView() {
     ) {
       classicGretaShown.current = true
       setAlert({
-        title: 'Classic Greta',
-        body: "Can't make up your mind can you pretty girl? 👀",
+        title: t('settings.gretaTease.title'),
+        body: t('settings.gretaTease.body'),
       })
     }
   }
@@ -373,10 +373,11 @@ export function SettingsView() {
             type="button"
             onClick={() =>
               setAlert({
-                title: 'Battery Percentage',
+                title: t('settings.batteryAlert.title'),
                 body: (
                   <>
-                    <em>Probably</em> too low - charge it, so we can call babe! Xxx
+                    <em>{t('settings.batteryAlert.pre')}</em>
+                    {t('settings.batteryAlert.post')}
                   </>
                 ),
               })
