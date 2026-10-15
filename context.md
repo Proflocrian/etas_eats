@@ -114,6 +114,29 @@ Four full themes, selectable in Settings, all driven by CSS custom properties wr
 Each theme supplies a full `Palette` plus optional `decor` flags (patterned backgrounds,
 special FABs, print trims, waves, etc.) that toggle extra DOM in the components.
 
+## Launch splash
+Two things show the logo at launch, both on white (`#ffffff`, matching the default theme):
+- **In-app splash** - the `#splash` overlay in `index.html` (logo pops in, then fades; removed by `main.tsx`). Pure HTML/CSS, shows on every platform.
+- **Native iOS splash** - `apple-touch-startup-image` `<link>`s in `index.html` pointing at PNGs in `public/splash/` (logo centred on white, one exact-size image per iPhone resolution). iOS ignores any whose `media` query doesn't match the device exactly.
+
+To regenerate the iOS PNGs after changing `public/favicon.svg`: `pnpm add -D sharp`, run the script below, replace the startup-image tags in `index.html` with its printed output, then `pnpm remove sharp`.
+
+```js
+import sharp from 'sharp'
+import { readFileSync, mkdirSync } from 'node:fs'
+const BG = '#ffffff', svg = readFileSync('public/favicon.svg')
+mkdirSync('public/splash', { recursive: true })
+// [cssW, cssH, dpr] for the recent iPhone lineup (portrait).
+const devices = [[320,568,2],[375,667,2],[414,736,3],[375,812,3],[414,896,2],[414,896,3],[390,844,3],[428,926,3],[393,852,3],[430,932,3],[402,874,3],[440,956,3]]
+for (const [cw, ch, dpr] of devices) {
+  const pw = cw*dpr, ph = ch*dpr, logo = Math.round(Math.min(pw, ph) * 0.4)
+  const l = await sharp(svg, { density: 384 }).resize(logo, logo).png().toBuffer()
+  await sharp({ create: { width: pw, height: ph, channels: 4, background: BG } })
+    .composite([{ input: l, gravity: 'center' }]).png().toFile(`public/splash/apple-splash-${pw}-${ph}.png`)
+  console.log(`<link rel="apple-touch-startup-image" media="(device-width: ${cw}px) and (device-height: ${ch}px) and (-webkit-device-pixel-ratio: ${dpr}) and (orientation: portrait)" href="%BASE_URL%splash/apple-splash-${pw}-${ph}.png" />`)
+}
+```
+
 ## Notifications (Phase 2 - still deferred, not built)
 - iOS Web Push (16.4+) is server-triggered, not locally scheduled. No reliable browser API
   fires a local notification at a fixed time while the PWA is closed.
