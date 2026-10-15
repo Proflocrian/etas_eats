@@ -2,12 +2,15 @@ import { useRef, useState } from 'react'
 import type { Entry, EntryTypeEnum, NewEntry, SymptomTypeEnum } from '../db/db'
 import { addEntry, deleteEntry, replaceEntry } from '../db/entries'
 import {
+  DEFAULT_DURATION_MINUTES,
+  DURATION_OPTIONS,
   dateKeyToInput,
   entryDateTime,
+  entryEndLabel,
   inputToDateKey,
-  slotRangeLabel,
   timeSlots,
 } from '../lib/calendar'
+import { formatDuration } from '../lib/date-i18n'
 import { useI18n } from '../lib/i18n-context'
 import { useDecor } from '../lib/theme-context'
 import { DateTimeDialog } from './DateTimeDialog'
@@ -80,10 +83,13 @@ export function EntryForm({
 }) {
   const isEdit = entry !== undefined
   const decor = useDecor()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
 
   const [dateKey, setDateKey] = useState(initialDateKey)
   const [time, setTime] = useState(initialTime)
+  const [durationMinutes, setDurationMinutes] = useState(
+    entry?.durationMinutes ?? DEFAULT_DURATION_MINUTES,
+  )
   const [entryType, setEntryType] = useState<EntryTypeEnum>(
     entry?.entryType ?? 'food',
   )
@@ -161,6 +167,7 @@ export function EntryForm({
     entry !== undefined &&
     dateKey === entry.date &&
     time === entry.time &&
+    durationMinutes === (entry.durationMinutes ?? DEFAULT_DURATION_MINUTES) &&
     (notes.trim() || undefined) === (entry.notes?.trim() || undefined) &&
     (entry.entryType === 'food'
       ? food.trim() === entry.food &&
@@ -181,7 +188,7 @@ export function EntryForm({
   }
 
   function buildNewEntry(): NewEntry {
-    const base = { date: dateKey, time, notes: notes.trim() || undefined }
+    const base = { date: dateKey, time, durationMinutes, notes: notes.trim() || undefined }
     if (entryType === 'food') {
       return {
         ...base,
@@ -366,31 +373,73 @@ export function EntryForm({
             </div>
           )}
 
-          {/* Date + timeslot */}
+          {/* Date + start */}
           <div className="flex gap-2">
-            <input
-              type="date"
-              aria-label={t('form.date')}
-              className={inputClass}
-              style={inputStyle}
-              value={dateKeyToInput(dateKey)}
-              onChange={(e) => {
-                if (e.target.value) setDateKey(inputToDateKey(e.target.value))
-              }}
-            />
-            <select
-              aria-label={t('form.timeSlot')}
-              className={inputClass}
-              style={inputStyle}
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-            >
-              {timeSlots().map((slot) => (
-                <option key={slot} value={slot}>
-                  {slotRangeLabel(slot)}
-                </option>
-              ))}
-            </select>
+            <label className="min-w-0 flex-1">
+              <span className={labelClass}>{t('form.date')}</span>
+              <input
+                type="date"
+                aria-label={t('form.date')}
+                className={inputClass}
+                style={inputStyle}
+                value={dateKeyToInput(dateKey)}
+                onChange={(e) => {
+                  if (e.target.value) setDateKey(inputToDateKey(e.target.value))
+                }}
+              />
+            </label>
+            <label className="min-w-0 flex-1">
+              <span className={labelClass}>{t('form.start')}</span>
+              <select
+                aria-label={t('form.start')}
+                className={inputClass}
+                style={inputStyle}
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+              >
+                {timeSlots().map((slot) => (
+                  <option key={slot} value={slot}>
+                    {slot}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {/* Duration + end time - two views of the same value; editing either sets it. */}
+          <div className="flex gap-2">
+            <label className="min-w-0 flex-1">
+              <span className={labelClass}>{t('form.duration')}</span>
+              <select
+                aria-label={t('form.duration')}
+                className={inputClass}
+                style={inputStyle}
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(Number(e.target.value))}
+              >
+                {DURATION_OPTIONS.map((min) => (
+                  <option key={min} value={min}>
+                    {formatDuration(min, lang)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="min-w-0 flex-1">
+              <span className={labelClass}>{t('form.endTime')}</span>
+              <select
+                aria-label={t('form.endTime')}
+                className={inputClass}
+                style={inputStyle}
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(Number(e.target.value))}
+              >
+                {DURATION_OPTIONS.map((min) => (
+                  <option key={min} value={min}>
+                    {entryEndLabel(time, min)}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           {/* Variant-specific fields (natural height). */}

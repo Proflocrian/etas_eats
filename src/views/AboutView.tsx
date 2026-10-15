@@ -7,7 +7,7 @@ import { COLORS } from '../lib/theme'
 import { GerdView } from './GerdView'
 
 const PHOTO_URL = `${import.meta.env.BASE_URL}us.jpeg`
-const APP_VERSION = 'v1.1'
+const APP_VERSION = 'v1.2'
 
 type AboutRow = { emoji: string; label: string; onClick: () => void }
 

@@ -69,7 +69,10 @@ export function CalendarView() {
   })
 
   const reload = useCallback(async () => {
-    const keys = visibleDays(anchor, viewMode).map(toDateKey)
+    const visible = visibleDays(anchor, viewMode)
+    // Also load the day before, so an entry spilling past midnight into the
+    // first visible day has its tail block rendered.
+    const keys = [toDateKey(addDays(visible[0], -1)), ...visible.map(toDateKey)]
     setEntriesByDate(await getEntriesByDates(keys))
   }, [anchor, viewMode])
 

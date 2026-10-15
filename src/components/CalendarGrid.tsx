@@ -1,10 +1,14 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { Entry } from '../db/db'
 import {
+  DEFAULT_DURATION_MINUTES,
   SLOTS_PER_DAY,
   SLOT_MINUTES,
+  addDays,
   dayNumber,
+  daySegments,
   isSameDay,
+  overlapColumns,
   slotRangeLabel,
   timeSlots,
   timeToMinutes,
@@ -26,8 +30,17 @@ const INITIAL_SCROLL_TOP = 6.5 * HOUR_H // open at 06:30
 // within a session. Unset on first app load, so the app opens at 06:30.
 let savedScrollTop: number | null = null
 
-function slotIndexOf(time: string): number {
-  return Math.floor(timeToMinutes(time) / SLOT_MINUTES)
+// One rendered rectangle in a day column. An entry contributes a head block to
+// its start day and, if it crosses midnight, a tail block to the next day.
+interface Block {
+  entry: Entry
+  topMin: number // minutes from this column's midnight
+  heightMin: number
+  isTail: boolean
+}
+
+function durationOf(e: Entry): number {
+  return e.durationMinutes ?? DEFAULT_DURATION_MINUTES
 }
 
 export function CalendarGrid({
@@ -178,16 +191,28 @@ export function CalendarGrid({
           {days.map((d) => {
             const key = toDateKey(d)
             const isToday = isSameDay(d, today)
-            const dayEntries = entriesByDate[key] ?? []
 
-            // Group same-slot entries so they can sit side by side.
-            const bySlot = new Map<number, Entry[]>()
-            for (const e of dayEntries) {
-              const idx = slotIndexOf(e.time)
-              const group = bySlot.get(idx)
-              if (group) group.push(e)
-              else bySlot.set(idx, [e])
+            // Blocks in this column: each own entry's start-day segment, plus the
+            // previous day's entries that spill past midnight into this column.
+            const blocks: Block[] = []
+            for (const e of entriesByDate[key] ?? []) {
+              const head = daySegments(timeToMinutes(e.time), durationOf(e))[0]
+              blocks.push({ entry: e, topMin: head.topMin, heightMin: head.heightMin, isTail: false })
             }
+            const prevKey = toDateKey(addDays(d, -1))
+            for (const e of entriesByDate[prevKey] ?? []) {
+              const tail = daySegments(timeToMinutes(e.time), durationOf(e)).find(
+                (s) => s.dayOffset === 1,
+              )
+              if (tail) {
+                blocks.push({ entry: e, topMin: tail.topMin, heightMin: tail.heightMin, isTail: true })
+              }
+            }
+
+            // Side-by-side columns for blocks that overlap in time (Google-style).
+            const lanes = overlapColumns(
+              blocks.map((b) => ({ startMin: b.topMin, endMin: b.topMin + b.heightMin })),
+            )
 
             return (
               <div
@@ -211,25 +236,25 @@ export function CalendarGrid({
                   />
                 ))}
 
-                {/* Entry chips positioned over their start slot. */}
-                {dayEntries.map((e) => {
-                  const idx = slotIndexOf(e.time)
-                  const group = bySlot.get(idx) ?? [e]
-                  const pos = group.indexOf(e)
-                  const w = 100 / group.length
+                {/* Entry blocks positioned + sized over their time span. */}
+                {blocks.map((b, i) => {
+                  const e = b.entry
+                  const lane = lanes[i]
+                  const w = 100 / lane.cols
+                  const pos = lane.col
                   const meta = ENTRY_TYPE_META[e.entryType]
                   const isTrigger =
                     (e.entryType === 'food' || e.entryType === 'activity') &&
                     e.possibleTrigger
                   return (
                     <button
-                      key={e.id}
+                      key={`${e.id}-${b.isTail ? 't' : 'h'}`}
                       type="button"
                       onClick={() => onEntryTap(e)}
                       className="absolute overflow-hidden rounded-md px-1 text-left text-[11px] leading-tight"
                       style={{
-                        top: idx * ROW_H + 1,
-                        height: ROW_H - 2,
+                        top: (b.topMin / SLOT_MINUTES) * ROW_H + 1,
+                        height: (b.heightMin / SLOT_MINUTES) * ROW_H - 2,
                         left: `calc(${pos * w}% + 1px)`,
                         width: `calc(${w}% - 2px)`,
                         backgroundColor: meta.bg,
@@ -238,7 +263,7 @@ export function CalendarGrid({
                       }}
                     >
                       <span className="block truncate">
-                        {isTrigger && '🚩 '}
+                        {b.isTail ? '↳ ' : isTrigger ? '🚩 ' : ''}
                         {entryTitle(e, t)}
                       </span>
                     </button>

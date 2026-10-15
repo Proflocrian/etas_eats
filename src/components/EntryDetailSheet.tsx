@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import type { TriggerableEntry } from '../db/db'
 import { updateEntry } from '../db/entries'
-import { parseDateKey, slotRangeLabel } from '../lib/calendar'
+import { DEFAULT_DURATION_MINUTES, entryTimeRangeLabel, parseDateKey } from '../lib/calendar'
 import { formatLongDate } from '../lib/date-i18n'
 import { entryTitle } from '../lib/entryTypes'
 import { useI18n } from '../lib/i18n-context'
@@ -69,7 +69,10 @@ export function EntryDetailSheet({
   }
   rows.push({
     label: t('detail.when'),
-    value: `${formatLongDate(parseDateKey(entry.date), lang)} · ${slotRangeLabel(entry.time)}`,
+    value: `${formatLongDate(parseDateKey(entry.date), lang)} · ${entryTimeRangeLabel(
+      entry.time,
+      entry.durationMinutes ?? DEFAULT_DURATION_MINUTES,
+    )}`,
   })
   if (entry.notes) rows.push({ label: t('form.notes'), value: entry.notes })
 

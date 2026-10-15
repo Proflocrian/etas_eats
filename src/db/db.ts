@@ -17,6 +17,7 @@ interface BaseEntry {
   id?: number
   date: string // 'DD-MM-YYYY', calendar grouping key
   time: string // 'HH:MM', slot start
+  durationMinutes?: number // 30..720; undefined on pre-v5 records, treated as 30
   notes?: string
   createdAt: number
   updatedAt: number
@@ -115,5 +116,17 @@ db.version(4)
         if (e.entryType === 'food' && e.foodType !== undefined) {
           delete e.foodType
         }
+      }),
+  )
+
+// v5: entries gained an adjustable `durationMinutes` (default 30, one slot).
+db.version(5)
+  .stores({ entries: '++id, date, entryType' })
+  .upgrade((tx) =>
+    tx
+      .table('entries')
+      .toCollection()
+      .modify((e: { durationMinutes?: number }) => {
+        if (e.durationMinutes === undefined) e.durationMinutes = 30
       }),
   )

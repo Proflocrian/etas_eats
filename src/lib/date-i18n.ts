@@ -26,6 +26,15 @@ export function formatLongDate(date: Date, lang: Lang): string {
   return `${weekdayShort(date, lang)}, ${date.getDate()} ${monthAbbr(date, lang)} ${date.getFullYear()}`
 }
 
+// A duration label, e.g. '30m' / '1h' / '1h 30m' / '12h'.
+export function formatDuration(minutes: number, lang: Lang): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h === 0) return translate(lang, 'gap.m', { n: m })
+  if (m === 0) return translate(lang, 'gap.h', { n: h })
+  return `${translate(lang, 'gap.h', { n: h })} ${translate(lang, 'gap.m', { n: m })}`
+}
+
 // Human gap before a symptom, e.g. '5h before' / '1d 3h before'.
 export function formatGap(minutes: number, lang: Lang): string {
   const mins = Math.max(0, Math.round(minutes))
