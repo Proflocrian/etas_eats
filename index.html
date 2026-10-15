@@ -27,43 +27,9 @@
     <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="%BASE_URL%splash/apple-splash-1206-2622.png" />
     <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="%BASE_URL%splash/apple-splash-1320-2868.png" />
     <title>Etas Eats</title>
-    <style>
-      /* Launch splash: continues the native PWA splash (same background_color),
-         pops the logo in, holds, then fades out to reveal the app. It renders at
-         first paint (before the JS loads) and auto-hides via CSS even if JS is
-         slow; main.tsx removes the node once the fade finishes. */
-      #splash {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #ffffff;
-        animation: splash-out 0.45s ease 1s forwards;
-      }
-      #splash img {
-        width: 128px;
-        height: 128px;
-        animation: splash-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-      }
-      @keyframes splash-in {
-        0% { opacity: 0; transform: scale(0.6); }
-        60% { opacity: 1; transform: scale(1.06); }
-        100% { opacity: 1; transform: scale(1); }
-      }
-      @keyframes splash-out {
-        to { opacity: 0; visibility: hidden; }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        #splash { animation-delay: 0.5s; }
-        #splash img { animation: none; }
-      }
-    </style>
   </head>
   <body>
     <div id="root"></div>
-    <div id="splash"><img src="%BASE_URL%favicon.svg" alt="" /></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
