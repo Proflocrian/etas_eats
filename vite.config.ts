@@ -19,7 +19,7 @@ export default defineConfig(({ command }) => ({
         short_name: 'Etas Eats',
         description: 'A personal food diary',
         theme_color: '#ffffff',
-        background_color: '#fff8f3',
+        background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
         // Relative so they resolve under the deploy base (/etas_eats/) and at / in dev.

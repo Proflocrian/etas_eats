@@ -30,3 +30,9 @@ createRoot(document.getElementById('root')!).render(
     </ThemeProvider>
   </StrictMode>,
 )
+
+// Remove the launch splash (declared in index.html) once its fade-out finishes.
+const splash = document.getElementById('splash')
+splash?.addEventListener('animationend', (e) => {
+  if ((e as AnimationEvent).animationName === 'splash-out') splash.remove()
+})
