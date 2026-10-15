@@ -115,9 +115,11 @@ Each theme supplies a full `Palette` plus optional `decor` flags (patterned back
 special FABs, print trims, waves, etc.) that toggle extra DOM in the components.
 
 ## Launch splash
-Two things show the logo at launch, both on white (`#ffffff`, matching the default theme):
-- **In-app splash** - the `#splash` overlay in `index.html` (logo pops in, then fades; removed by `main.tsx`). Pure HTML/CSS, shows on every platform.
-- **Native iOS splash** - `apple-touch-startup-image` `<link>`s in `index.html` pointing at PNGs in `public/splash/` (logo centred on white, one exact-size image per iPhone resolution). iOS ignores any whose `media` query doesn't match the device exactly.
+Installed PWAs show a native launch screen (logo on white `#ffffff`, matching the default theme):
+Android draws the manifest icon on `background_color`; iOS uses the `apple-touch-startup-image`
+`<link>`s in `index.html` pointing at PNGs in `public/splash/` (one exact-size image per iPhone
+resolution - iOS ignores any whose `media` query doesn't match the device exactly). There's no
+in-app/animated splash - it double-showed on top of the native one.
 
 To regenerate the iOS PNGs after changing `public/favicon.svg`: `pnpm add -D sharp`, run the script below, replace the startup-image tags in `index.html` with its printed output, then `pnpm remove sharp`.
 
