@@ -56,8 +56,17 @@ export type DistributivePartial<T> = T extends unknown ? Partial<T> : never
 // Fields supplied on create; id and timestamps are managed by the DAL.
 export type NewEntry = DistributiveOmit<Entry, 'id' | 'createdAt' | 'updatedAt'>
 
+// One optional photo per entry, stored as a Blob in its own table so entry
+// queries (calendar/tracker/export) never pull image data. Keyed by entryId.
+export interface PhotoRecord {
+  entryId: number
+  blob: Blob
+  createdAt: number
+}
+
 export const db = new Dexie('etas-eats') as Dexie & {
   entries: EntityTable<Entry, 'id'>
+  photos: EntityTable<PhotoRecord, 'entryId'>
 }
 
 db.version(1).stores({
@@ -130,3 +139,9 @@ db.version(5)
         if (e.durationMinutes === undefined) e.durationMinutes = 30
       }),
   )
+
+// v6: optional per-entry photos, in a new `photos` table (additive).
+db.version(6).stores({
+  entries: '++id, date, entryType',
+  photos: 'entryId',
+})

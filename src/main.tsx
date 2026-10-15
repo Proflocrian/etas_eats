@@ -18,6 +18,9 @@ import { ThemeProvider } from './lib/theme-context'
 // Apply the saved theme before first paint so there's no flash of the default.
 applyTheme(loadThemeId())
 
+// Best-effort: ask the browser not to evict our IndexedDB (entries + photos).
+void navigator.storage?.persist?.()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>

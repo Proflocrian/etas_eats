@@ -1,6 +1,13 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Entry, EntryTypeEnum, NewEntry, SymptomTypeEnum } from '../db/db'
-import { addEntry, deleteEntry, replaceEntry } from '../db/entries'
+import {
+  addEntry,
+  deleteEntry,
+  deletePhoto,
+  getPhoto,
+  putPhoto,
+  replaceEntry,
+} from '../db/entries'
 import {
   DEFAULT_DURATION_MINUTES,
   DURATION_OPTIONS,
@@ -11,10 +18,13 @@ import {
   timeSlots,
 } from '../lib/calendar'
 import { formatDuration } from '../lib/date-i18n'
+import { compressImage } from '../lib/image'
 import { useI18n } from '../lib/i18n-context'
+import { useBackToClose } from '../lib/use-back-to-close'
 import { useDecor } from '../lib/theme-context'
 import { DateTimeDialog } from './DateTimeDialog'
 import { Modal } from './Modal'
+import { PhotoViewer } from './PhotoViewer'
 import { SheetGrabber, Star, WaveAccent } from './decor'
 import { YesNoSwitch } from './YesNoSwitch'
 import {
@@ -123,6 +133,52 @@ export function EntryForm({
   const [duplicating, setDuplicating] = useState(false)
   const [confirmFuture, setConfirmFuture] = useState(false)
 
+  // Optional photo (Food/Activity). Staged in state and only written on Save;
+  // `photoDirty` tracks whether it differs from what's stored. Stored in its own
+  // `photos` table keyed by entry id, so it's written after the entry exists.
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [photoBlob, setPhotoBlob] = useState<Blob | null>(null)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [photoDirty, setPhotoDirty] = useState(false)
+  const [viewingPhoto, setViewingPhoto] = useState(false)
+  // Device Back closes the fullscreen photo viewer first (not the form).
+  useBackToClose(viewingPhoto, () => setViewingPhoto(false))
+
+  // Load an existing entry's photo once (doesn't count as a change).
+  useEffect(() => {
+    if (!entry || (entry.entryType !== 'food' && entry.entryType !== 'activity')) return
+    let cancelled = false
+    getPhoto(entry.id as number).then((blob) => {
+      if (!cancelled && blob) setPhotoBlob(blob)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [entry])
+
+  // Keep a preview object URL in sync with the staged blob; revoke on change.
+  useEffect(() => {
+    const url = photoBlob ? URL.createObjectURL(photoBlob) : null
+    // oxlint-disable-next-line react/set-state-in-effect
+    setPhotoUrl(url)
+    return () => {
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [photoBlob])
+
+  async function handlePhotoFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // let the same file be picked again later
+    if (!file) return
+    setPhotoBlob(await compressImage(file))
+    setPhotoDirty(true)
+  }
+
+  function removePhoto() {
+    setPhotoBlob(null)
+    setPhotoDirty(true)
+  }
+
   // Swipe-down-to-dismiss (like a native bottom sheet). Dragging starts only
   // when the sheet is scrolled to the top; pulling past a third of its height closes.
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -165,6 +221,7 @@ export function EntryForm({
   // In edit mode, keep Save disabled until something actually changes.
   const unchanged =
     entry !== undefined &&
+    !photoDirty &&
     dateKey === entry.date &&
     time === entry.time &&
     durationMinutes === (entry.durationMinutes ?? DEFAULT_DURATION_MINUTES) &&
@@ -212,6 +269,7 @@ export function EntryForm({
   async function doSave() {
     setSaving(true)
     const data = buildNewEntry()
+    let id: number
     if (entry) {
       await replaceEntry({
         ...data,
@@ -219,8 +277,14 @@ export function EntryForm({
         createdAt: entry.createdAt,
         updatedAt: entry.updatedAt,
       } as Entry)
+      id = entry.id as number
     } else {
-      await addEntry(data)
+      id = await addEntry(data)
+    }
+    const wantsPhoto = data.entryType === 'food' || data.entryType === 'activity'
+    if (wantsPhoto && photoDirty) {
+      if (photoBlob) await putPhoto(id, photoBlob)
+      else await deletePhoto(id)
     }
     onSaved()
   }
@@ -243,10 +307,21 @@ export function EntryForm({
   }
 
   // Create a copy of the current fields at a chosen date/time.
-  async function handleDuplicate(targetDateKey: string, targetTime: string) {
+  async function handleDuplicate(
+    targetDateKey: string,
+    targetTime: string,
+    targetDuration: number,
+  ) {
     if (missingRequired || saving) return
     setSaving(true)
-    await addEntry({ ...buildNewEntry(), date: targetDateKey, time: targetTime })
+    const newId = await addEntry({
+      ...buildNewEntry(),
+      date: targetDateKey,
+      time: targetTime,
+      durationMinutes: targetDuration,
+    })
+    const wantsPhoto = entryType === 'food' || entryType === 'activity'
+    if (wantsPhoto && photoBlob) await putPhoto(newId, photoBlob)
     onSaved()
   }
 
@@ -526,6 +601,70 @@ export function EntryForm({
             </div>
           )}
 
+          {/* Photo (Food/Activity only) - camera capture, staged until Save. */}
+          {(entryType === 'food' || entryType === 'activity') && (
+            <div>
+              <span className={labelClass}>
+                {t('form.photo')} <span className={optionalClass}>{t('form.optional')}</span>
+              </span>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handlePhotoFile}
+              />
+              {photoUrl ? (
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setViewingPhoto(true)}
+                    aria-label={t('form.viewPhoto')}
+                    className="tap h-20 w-20 overflow-hidden rounded-lg border border-input-border"
+                  >
+                    <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setViewingPhoto(true)}
+                      className="self-start text-sm font-medium text-primary"
+                      style={decor.sheetWave ? { color: '#2B6CB0' } : undefined}
+                    >
+                      {t('form.viewPhoto')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="self-start text-sm font-medium text-primary"
+                      style={decor.sheetWave ? { color: '#2B6CB0' } : undefined}
+                    >
+                      {t('form.retakePhoto')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={removePhoto}
+                      className="self-start text-sm font-medium text-danger-text"
+                      style={decor.sheetWave ? { color: '#C53030' } : undefined}
+                    >
+                      {t('form.removePhoto')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  aria-label={t('form.addPhoto')}
+                  className="tap flex h-20 w-20 items-center justify-center rounded-lg border-2 border-dashed border-input-border text-3xl font-light text-text-muted"
+                >
+                  +
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Notes (all types) */}
           <div>
             <label className={labelClass} htmlFor="ef-notes">
@@ -599,8 +738,9 @@ export function EntryForm({
           confirmLabel={t('form.duplicateShort')}
           initialDateKey={dateKey}
           initialTime={time}
+          initialDuration={durationMinutes}
           onCancel={() => setDuplicating(false)}
-          onConfirm={(d, tm) => handleDuplicate(d, tm)}
+          onConfirm={(d, tm, dur) => handleDuplicate(d, tm, dur)}
         />
       )}
 
@@ -613,6 +753,10 @@ export function EntryForm({
           onConfirm={doSave}
           onClose={() => setConfirmFuture(false)}
         />
+      )}
+
+      {viewingPhoto && photoUrl && (
+        <PhotoViewer src={photoUrl} onClose={() => setViewingPhoto(false)} />
       )}
     </div>
   )

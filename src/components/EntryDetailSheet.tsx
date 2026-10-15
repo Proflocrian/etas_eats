@@ -1,12 +1,14 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { TriggerableEntry } from '../db/db'
-import { updateEntry } from '../db/entries'
+import { getPhoto, updateEntry } from '../db/entries'
+import { useBackToClose } from '../lib/use-back-to-close'
 import { DEFAULT_DURATION_MINUTES, entryTimeRangeLabel, parseDateKey } from '../lib/calendar'
 import { formatLongDate } from '../lib/date-i18n'
 import { entryTitle } from '../lib/entryTypes'
 import { useI18n } from '../lib/i18n-context'
 import { COLORS, ENTRY_TYPE_META } from '../lib/theme'
 import { useDecor } from '../lib/theme-context'
+import { PhotoViewer } from './PhotoViewer'
 import { SheetGrabber, WaveAccent } from './decor'
 import { YesNoSwitch } from './YesNoSwitch'
 
@@ -25,6 +27,25 @@ export function EntryDetailSheet({
   const meta = ENTRY_TYPE_META[entry.entryType]
   const decor = useDecor()
   const { t, lang } = useI18n()
+
+  // Load the entry's photo (if any) and show it; revoke the URL on close.
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [viewingPhoto, setViewingPhoto] = useState(false)
+  // Device Back closes the fullscreen photo viewer first (not the sheet).
+  useBackToClose(viewingPhoto, () => setViewingPhoto(false))
+  useEffect(() => {
+    let url: string | null = null
+    let cancelled = false
+    getPhoto(entry.id as number).then((blob) => {
+      if (cancelled || !blob) return
+      url = URL.createObjectURL(blob)
+      setPhotoUrl(url)
+    })
+    return () => {
+      cancelled = true
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [entry.id])
 
   // Swipe-down-to-dismiss (matches EntryForm). Drag starts only at scrollTop 0;
   // pulling past a third of the sheet height closes.
@@ -155,6 +176,17 @@ export function EntryDetailSheet({
             ))}
           </dl>
 
+          {photoUrl && (
+            <button
+              type="button"
+              onClick={() => setViewingPhoto(true)}
+              aria-label={t('form.viewPhoto')}
+              className="tap block w-full overflow-hidden rounded-lg"
+            >
+              <img src={photoUrl} alt={entryTitle(entry, t)} className="w-full" />
+            </button>
+          )}
+
           <div className="flex items-center justify-between border-t border-divider pt-3">
             <span className="text-sm font-medium text-text-secondary">
               {t('form.possibleTrigger')}
@@ -169,6 +201,14 @@ export function EntryDetailSheet({
         </div>
         </div>
       </div>
+
+      {viewingPhoto && photoUrl && (
+        <PhotoViewer
+          src={photoUrl}
+          alt={entryTitle(entry, t)}
+          onClose={() => setViewingPhoto(false)}
+        />
+      )}
     </div>
   )
 }

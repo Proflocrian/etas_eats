@@ -4,13 +4,16 @@ import { db, type FoodEntry, type NewEntry } from './db'
 import {
   addEntry,
   deleteEntry,
+  deletePhoto,
   getAllEntries,
   getEntriesBefore,
   getEntriesByDate,
   getEntriesByDates,
   getEntry,
+  getPhoto,
   getPossibleTriggers,
   getRecentSymptoms,
+  putPhoto,
   replaceEntry,
   updateEntry,
 } from './entries'
@@ -26,6 +29,7 @@ const sample: NewEntry = {
 
 beforeEach(async () => {
   await db.entries.clear()
+  await db.photos.clear()
 })
 
 describe('entries data layer', () => {
@@ -177,5 +181,46 @@ describe('entries data layer', () => {
     expect(
       triggers.map((e) => (e.entryType === 'food' ? e.food : e.activity)),
     ).toEqual(['Run', 'Spicy'])
+  })
+})
+
+describe('entry photos', () => {
+  const photo = () => new Blob(['img-bytes'], { type: 'image/jpeg' })
+
+  it('stores and reads back a photo for an entry', async () => {
+    const id = await addEntry(sample)
+    await putPhoto(id, photo())
+
+    const blob = await getPhoto(id)
+    expect(blob?.type).toBe('image/jpeg')
+    expect(blob?.size).toBe(9)
+    expect(await getPhoto(id + 1)).toBeUndefined() // other entry has none
+  })
+
+  it('replaces the photo on a second put (one per entry)', async () => {
+    const id = await addEntry(sample)
+    await putPhoto(id, photo())
+    await putPhoto(id, new Blob(['bigger-img-bytes'], { type: 'image/jpeg' }))
+
+    expect((await getPhoto(id))?.size).toBe(16)
+    expect(await db.photos.count()).toBe(1)
+  })
+
+  it('removes a photo without touching the entry', async () => {
+    const id = await addEntry(sample)
+    await putPhoto(id, photo())
+    await deletePhoto(id)
+
+    expect(await getPhoto(id)).toBeUndefined()
+    expect(await getEntry(id)).toBeDefined()
+  })
+
+  it('deleting an entry also deletes its photo', async () => {
+    const id = await addEntry(sample)
+    await putPhoto(id, photo())
+    await deleteEntry(id)
+
+    expect(await getPhoto(id)).toBeUndefined()
+    expect(await db.photos.count()).toBe(0)
   })
 })

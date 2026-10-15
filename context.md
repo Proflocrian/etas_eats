@@ -1,29 +1,3 @@
-# Current Instructions
-
-Nice, good summary. No we're going to be working on v1.2 today, these are some of the new features; 
-
-1. Adjustable time slots for entrys (still 30m increments)
-  - Ofc, backwards compatible with old DB entries
-  - Needs to look appropriate on the calendar view
-2. Actually implement notifications
-3. For Food | Activity entries, lets add an optional "Photo" field
-  - The idea would be an `Photo (Optional) (+)` entry, and when the `+` button is pushed, it allows her to take a photo
-  - And when she views the entry in the future, she can see the photo.
-  - This ofc still works offline, and we dont want to like duplicate data (ie the photo itself shouldnt exist in two places on her phone at once)
-  - So i dont have a great idea on how to implmenet this - do you?
-
-For now we can just work on feature 1. Lmk if you have any questions. 
-
----
-
-- The `Date`, `Start` and `Duration` labels, should all have the same styling as the other labels inside the EntryDetailSheet and EntryForm (ie the same as the `Meal | Snack | Drink` label.)
-- There should be two fields on that row, `Duration [dropdown] | End Time [dropdown]`, the way they work should be obvious, If she says `2hrs` in the duration, the end field updates to the right time, and vv. 
-- Likewise the `Date` and `Start` row, the two fields should take an equal amount of horizontal space on their row (does that make sense?)
-- Finally, the CalendarView, should work they way Google Calendar does (overlapping blocks get "thinner", see an example screenshot of google calendar at the root `google_calendar_eg.jpeg`). 
-
-Lmk if you have any other questions?
-
-
 # EtasEats - GERD Food & Symptom Diary PWA
 
 ## Overview
@@ -55,11 +29,15 @@ Single-page app, offline-first, no backend in phase 1. Source lives in `src/`:
   - `db.ts` - Dexie instance, the `Entry` type, and schema versions/migrations.
   - `entries.ts` - the typed CRUD + query DAL (`addEntry`, `getEntriesByDate(s)`,
     `getAllEntries`, `getAllSymptoms`, `getEntriesBefore`, `getPossibleTriggers`,
-    `updateEntry`, `replaceEntry`, `deleteEntry`, `clearAllEntries`).
+    `updateEntry`, `replaceEntry`, `deleteEntry`, `clearAllEntries`) + photos
+    (`putPhoto`, `getPhoto`, `deletePhoto`).
   - `entries.test.ts` - DAL tests (run against fake-indexeddb).
 - **`lib/`** - framework-free logic + cross-cutting concerns.
-  - `calendar.ts` (+ `.test.ts`) - pure date/time + 30-min-slot helpers. Date key is `DD-MM-YYYY`.
-  - `date-i18n.ts` - localised month/weekday/date/gap formatting.
+  - `calendar.ts` (+ `.test.ts`) - pure date/time + 30-min-slot helpers (date key `DD-MM-YYYY`),
+    plus entry-duration maths: `daySegments` (split a block across midnight),
+    `entryTimeRangeLabel`/`entryEndLabel`, and `overlapColumns` (Google-style side-by-side lanes).
+  - `image.ts` - `compressImage`: downscale/JPEG a captured photo before storing.
+  - `date-i18n.ts` - localised month/weekday/date/gap/duration formatting.
   - `period.ts` - the `all | 3d | week | month` range filter used by Tracker/Analysis.
   - `theme.ts` - the whole theming system: `Palette`, the 4 `THEMES`, `applyTheme` (writes
     CSS custom properties onto `:root`), entry-type emoji/labels/colours, decor flags.
@@ -68,35 +46,52 @@ Single-page app, offline-first, no backend in phase 1. Source lives in `src/`:
   - `entryTypes.ts` - symptom labels/options and the playful food/activity placeholders.
   - `lock.ts` - voucher-code gate (`UNLOCK_CODE`, stored in localStorage).
   - `pwa.ts` - installed-standalone detection.
-  - `use-back-to-close.ts` - closes sheets/dialogs on device Back.
+  - `use-back-to-close.ts` - wires device/browser Back to close the top overlay. See below.
 - **`components/`** - UI building blocks (calendar grid, entry form, bottom nav, filter
-  chips/bar, bottom sheets, dialogs, trackers, trigger/symptom lists, lock screen, decor).
+  chips/bar, bottom sheets, dialogs, trackers, trigger/symptom lists, photo viewer, lock
+  screen, decor).
 - **`views/`** - the top-level screens (one per nav tab, plus modals/landing).
 - **`assets/`** - hero image + leopard-print SVG tiles (theme treatments).
 - **`App.tsx`** - shell: install gate -> lock gate -> tab router + background decor layers.
-- **`main.tsx`** - root render; applies the saved theme before first paint, wraps in providers.
+- **`main.tsx`** - root render; applies the saved theme before first paint, requests
+  persistent storage, wraps in providers.
 
 State pattern: the active tab drives the browser history (device Back navigates tabs), and
 each view keeps its filter/anchor state in module-level variables so it survives a remount
 on tab switch.
 
+Overlays (sheets, dialogs, the fullscreen photo viewer) use `useBackToClose(isOpen, onClose)`:
+it pushes a history entry while open so Back closes just that overlay. Overlays may nest (it
+uses a shared stack). **Call it from a component that stays mounted while `isOpen` toggles**
+(a view, or whatever renders the overlay) - never from the overlay itself with a constant
+`isOpen={true}`, which desyncs history under StrictMode.
+
 ## Data model - `Entry`
 A discriminated union on `entryType` (`'food' | 'activity' | 'symptom'`). Shared fields:
 `id` (auto-increment), `date` (`DD-MM-YYYY` grouping key), `time` (`HH:MM` slot start),
-optional `notes`, and managed `createdAt` / `updatedAt`.
+`durationMinutes?` (30..720 in 30-min steps; `undefined` on old rows = 30), optional `notes`,
+and managed `createdAt` / `updatedAt`.
 
 - **`food`** - `food` (free text), optional `quantity`, `possibleTrigger: boolean`.
 - **`activity`** - `activity` (free text), `possibleTrigger: boolean`.
 - **`symptom`** - `symptomTypes: SymptomTypeEnum[]` (one or more of heartburn, regurgitation,
   abdominal-pain, nausea, bloating, other).
 
-Dexie schema is at **version 4**; `db.ts` carries the upgrade steps (single `symptomType` ->
-`symptomTypes[]`; added `possibleTrigger`; removed the old food sub-kind). Keep adding a new
-`db.version(n)` with an `.upgrade()` when the shape changes - never mutate an existing version.
+**Photos:** an optional photo per Food/Activity entry lives in a separate `photos` table
+(`{ entryId, blob, createdAt }`), so entry queries stay light; load it lazily by id. Camera
+capture only, downscaled via `lib/image.ts`. `deleteEntry` / `clearAllEntries` clear it too.
+
+Dexie schema is at **version 6**; `db.ts` carries the upgrade steps (v2 `symptomType` ->
+`symptomTypes[]`, v3 `possibleTrigger`, v4 drop old food sub-kind, v5 `durationMinutes`, v6
+`photos` table). Keep adding a new `db.version(n)` with an `.upgrade()` when the shape
+changes - never mutate an existing version.
 
 ## Views (bottom-nav tabs)
 - **Calendar** (`CalendarView`) - week/day 30-min grid; tap a slot to add, tap an entry to
-  edit; type filters + a "triggers only" filter. Home tab the app always launches on.
+  edit; type filters + a "triggers only" filter. Home tab the app always launches on. Blocks
+  are sized to their `durationMinutes` and can spill one block into the next day (12h cap);
+  overlapping blocks split into side-by-side columns (`overlapColumns`). The grid loads one
+  extra day before the range so a spill-in tail renders.
 - **Tracker** (`TrackerView`) - a flat, filterable list of entries grouped by day over a period.
 - **Analysis** (`AnalysisView`) - two sub-tabs: *Last Symptoms* (recent symptoms + what was
   logged in the 48h before each) and *Trigger List* (entries flagged as possible triggers).
@@ -135,4 +130,5 @@ special FABs, print trims, waves, etc.) that toggle extra DOM in the components.
 - **Small steps.** Implement and verify one step at a time. Do not make sweeping changes across multiple files at once.
 - **No git operations.** Never commit, push, `git mv`, create branches, or do anything git-related. The user handles all of this.
 - **No em-dashes in UI text.** Use a regular hyphen-dash (`-`) not an em-dash.
+- **Comments only when necessary.** Don't restate an obvious name; comment the non-obvious (invariants, back-compat defaults, why-not-what). Match the file's existing light comment density.
 - **Token efficiency.** Read relevant files, and keep your output simple.
