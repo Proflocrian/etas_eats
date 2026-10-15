@@ -56,7 +56,10 @@ export function useBackToClose(isOpen: boolean, onClose: () => void): void {
     startListening()
     const entry: ModalEntry = { close: () => onCloseRef.current() }
     stack.push(entry)
-    window.history.pushState({ modal: true }, '')
+    // Carry the current state (notably App's `tab`) onto the modal entry, so when
+    // Back lands here App's popstate handler keeps the right tab instead of
+    // defaulting to 'calendar'.
+    window.history.pushState({ ...(window.history.state ?? {}), modal: true }, '')
     return () => {
       const i = stack.indexOf(entry)
       // Already popped by a real Back: nothing to unwind.

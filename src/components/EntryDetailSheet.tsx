@@ -181,9 +181,14 @@ export function EntryDetailSheet({
               type="button"
               onClick={() => setViewingPhoto(true)}
               aria-label={t('form.viewPhoto')}
-              className="tap block w-full overflow-hidden rounded-lg"
+              className="tap block w-full"
             >
-              <img src={photoUrl} alt={entryTitle(entry, t)} className="w-full" />
+              {/* Cap height so portrait photos don't dominate; tap for full size. */}
+              <img
+                src={photoUrl}
+                alt={entryTitle(entry, t)}
+                className="mx-auto block max-h-[45vh] max-w-full rounded-lg"
+              />
             </button>
           )}
 
