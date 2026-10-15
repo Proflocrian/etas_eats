@@ -139,11 +139,27 @@ export async function replaceEntry(entry: Entry): Promise<number> {
 }
 
 export async function deleteEntry(id: number): Promise<void> {
-  return db.entries.delete(id)
+  await db.photos.delete(id)
+  await db.entries.delete(id)
 }
 
 // Wipe every entry (used by Settings "Delete All Data"). Theme/settings are
 // stored separately in localStorage and are not touched.
 export async function clearAllEntries(): Promise<void> {
-  return db.entries.clear()
+  await db.photos.clear()
+  await db.entries.clear()
+}
+
+// --- Photos (one optional Blob per entry, in the `photos` table) ---
+
+export async function putPhoto(entryId: number, blob: Blob): Promise<void> {
+  await db.photos.put({ entryId, blob, createdAt: Date.now() })
+}
+
+export async function getPhoto(entryId: number): Promise<Blob | undefined> {
+  return (await db.photos.get(entryId))?.blob
+}
+
+export async function deletePhoto(entryId: number): Promise<void> {
+  return db.photos.delete(entryId)
 }

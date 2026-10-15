@@ -1,9 +1,11 @@
 import type { Entry } from '../db/db'
+import { DEFAULT_DURATION_MINUTES } from './calendar'
 import { SYMPTOM_TYPE_LABELS } from './entryTypes'
 
 const HEADERS = [
   'Date',
   'Time',
+  'Duration (min)',
   'Type',
   'Food',
   'Quantity',
@@ -36,6 +38,7 @@ function rowFor(e: Entry): string[] {
   return [
     e.date,
     e.time,
+    String(e.durationMinutes ?? DEFAULT_DURATION_MINUTES),
     e.entryType[0].toUpperCase() + e.entryType.slice(1),
     food,
     quantity,

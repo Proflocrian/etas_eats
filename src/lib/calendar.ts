@@ -3,6 +3,16 @@
 
 export const SLOT_MINUTES = 30
 export const SLOTS_PER_DAY = (24 * 60) / SLOT_MINUTES // 48
+export const MINUTES_PER_DAY = 24 * 60
+
+// An entry lasts 30m..12h, in 30m steps. The 12h cap means it can spill into at
+// most the next calendar day (so never more than two rendered blocks).
+export const MAX_DURATION_MINUTES = 12 * 60
+export const DEFAULT_DURATION_MINUTES = SLOT_MINUTES
+export const DURATION_OPTIONS = Array.from(
+  { length: MAX_DURATION_MINUTES / SLOT_MINUTES },
+  (_, i) => (i + 1) * SLOT_MINUTES,
+)
 
 const MONTH_NAMES = [
   'January',
@@ -160,6 +170,92 @@ export function entryDateTime(dateKey: string, time: string): Date {
   const [h, m] = time.split(':').map(Number)
   d.setHours(h, m, 0, 0)
   return d
+}
+
+// A duration clamped to the valid range and snapped to a 30-min step.
+export function normalizeDuration(minutes: number | undefined): number {
+  const m = minutes ?? DEFAULT_DURATION_MINUTES
+  const snapped = Math.round(m / SLOT_MINUTES) * SLOT_MINUTES
+  return Math.min(MAX_DURATION_MINUTES, Math.max(SLOT_MINUTES, snapped))
+}
+
+// How an entry occupies the calendar, split across day columns. Returns one
+// segment, or two when it crosses midnight (dayOffset 0 = start day, 1 = next).
+// topMin/heightMin are minutes within that column's day (0..1440).
+export interface DaySegment {
+  dayOffset: 0 | 1
+  topMin: number
+  heightMin: number
+}
+export function daySegments(startMinutes: number, durationMinutes: number): DaySegment[] {
+  const dur = normalizeDuration(durationMinutes)
+  const end = startMinutes + dur
+  if (end <= MINUTES_PER_DAY) {
+    return [{ dayOffset: 0, topMin: startMinutes, heightMin: dur }]
+  }
+  return [
+    { dayOffset: 0, topMin: startMinutes, heightMin: MINUTES_PER_DAY - startMinutes },
+    { dayOffset: 1, topMin: 0, heightMin: end - MINUTES_PER_DAY },
+  ]
+}
+
+// Start-end label, e.g. '13:00-14:30', or '23:30-09:00 (+1d)' across midnight.
+export function entryTimeRangeLabel(time: string, durationMinutes: number): string {
+  const end = timeToMinutes(time) + normalizeDuration(durationMinutes)
+  const crosses = end >= MINUTES_PER_DAY
+  return `${time}-${minutesToTime(end)}${crosses ? ' (+1d)' : ''}`
+}
+
+// Just the end time, e.g. '14:30', or '01:30 (+1d)' when it crosses midnight.
+export function entryEndLabel(time: string, durationMinutes: number): string {
+  const end = timeToMinutes(time) + normalizeDuration(durationMinutes)
+  return `${minutesToTime(end)}${end >= MINUTES_PER_DAY ? ' (+1d)' : ''}`
+}
+
+// Google-Calendar-style column layout for a day's blocks: events that overlap in
+// time share the width equally, split into side-by-side columns. Returns, per input
+// index, which column the block takes and how many columns its overlap cluster has.
+// No right-expansion: a block keeps its column width even where nothing overlaps it.
+export interface Lane {
+  col: number
+  cols: number
+}
+export function overlapColumns(items: { startMin: number; endMin: number }[]): Lane[] {
+  const result: Lane[] = new Array(items.length)
+  // Process earliest-starting first (ties: shorter first) so earlier events sit left.
+  const order = [...items.keys()].sort(
+    (a, b) => items[a].startMin - items[b].startMin || items[a].endMin - items[b].endMin,
+  )
+  let cluster: number[] = []
+  let clusterEnd = -Infinity
+  const colEnd: number[] = [] // end-of-last-event per column, reset each cluster
+  const colOf = new Map<number, number>()
+
+  const flush = () => {
+    for (const idx of cluster) result[idx] = { col: colOf.get(idx)!, cols: colEnd.length }
+    cluster = []
+    colEnd.length = 0
+    clusterEnd = -Infinity
+  }
+
+  for (const idx of order) {
+    const it = items[idx]
+    // A gap with everything so far closes the cluster.
+    if (cluster.length && it.startMin >= clusterEnd) flush()
+    // First column whose last event has ended; else a new column.
+    let col = colEnd.findIndex((end) => end <= it.startMin)
+    if (col === -1) {
+      col = colEnd.length
+      colEnd.push(it.endMin)
+    } else {
+      colEnd[col] = it.endMin
+    }
+    colOf.set(idx, col)
+    cluster.push(idx)
+    clusterEnd = Math.max(clusterEnd, it.endMin)
+  }
+  if (cluster.length) flush()
+  return result
 }
 
 // Human gap, e.g. '30m before', '5h before', '5h 30m before', '1d 3h before'.

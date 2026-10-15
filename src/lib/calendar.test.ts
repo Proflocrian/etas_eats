@@ -1,18 +1,24 @@
 import { describe, expect, it } from 'vitest'
 import {
+  MAX_DURATION_MINUTES,
   SLOTS_PER_DAY,
   addDays,
   addWeeks,
   currentSlot,
   dateKeyToInput,
+  daySegments,
   entryDateTime,
+  entryEndLabel,
+  entryTimeRangeLabel,
   formatGap,
+  overlapColumns,
   formatLongDate,
   inputToDateKey,
   isSameDay,
   minutesToTime,
   monthAbbr,
   monthName,
+  normalizeDuration,
   parseDateKey,
   shortYear,
   slotRangeLabel,
@@ -141,5 +147,94 @@ describe('form helpers', () => {
     expect(formatGap(150)).toBe('2h 30m before')
     expect(formatGap(24 * 60)).toBe('1d before')
     expect(formatGap(26 * 60)).toBe('1d 2h before')
+  })
+})
+
+describe('entry duration', () => {
+  it('normalizes to a 30m step within 30..720', () => {
+    expect(normalizeDuration(undefined)).toBe(30)
+    expect(normalizeDuration(0)).toBe(30)
+    expect(normalizeDuration(44)).toBe(30) // snaps to nearest step
+    expect(normalizeDuration(46)).toBe(60)
+    expect(normalizeDuration(90)).toBe(90)
+    expect(normalizeDuration(10_000)).toBe(MAX_DURATION_MINUTES)
+  })
+
+  it('keeps a same-day entry as one segment', () => {
+    // 13:00 (780) for 90m stays within the day.
+    expect(daySegments(780, 90)).toEqual([
+      { dayOffset: 0, topMin: 780, heightMin: 90 },
+    ])
+  })
+
+  it('splits an entry that crosses midnight into head + tail', () => {
+    // 23:30 (1410) for 2h -> 30m head to midnight, 90m tail next day.
+    expect(daySegments(1410, 120)).toEqual([
+      { dayOffset: 0, topMin: 1410, heightMin: 30 },
+      { dayOffset: 1, topMin: 0, heightMin: 90 },
+    ])
+  })
+
+  it('treats ending exactly at midnight as a single segment', () => {
+    // 12:00 (720) + 12h = 24:00 exactly; no next-day block.
+    expect(daySegments(720, 720)).toEqual([
+      { dayOffset: 0, topMin: 720, heightMin: 720 },
+    ])
+  })
+
+  it('labels the time range, marking a midnight crossing', () => {
+    expect(entryTimeRangeLabel('13:00', 30)).toBe('13:00-13:30')
+    expect(entryTimeRangeLabel('13:00', 90)).toBe('13:00-14:30')
+    expect(entryTimeRangeLabel('23:30', 120)).toBe('23:30-01:30 (+1d)')
+  })
+
+  it('labels just the end time, marking a midnight crossing', () => {
+    expect(entryEndLabel('13:00', 90)).toBe('14:30')
+    expect(entryEndLabel('23:30', 120)).toBe('01:30 (+1d)')
+  })
+})
+
+describe('overlap columns', () => {
+  it('gives a lone block the full width', () => {
+    expect(overlapColumns([{ startMin: 600, endMin: 660 }])).toEqual([{ col: 0, cols: 1 }])
+  })
+
+  it('splits overlapping blocks into side-by-side columns, earlier on the left', () => {
+    // The screenshot case: Job birthday 13:00-14:00 beside Dance 13:45-15:15.
+    expect(
+      overlapColumns([
+        { startMin: 780, endMin: 840 },
+        { startMin: 825, endMin: 915 },
+      ]),
+    ).toEqual([
+      { col: 0, cols: 2 },
+      { col: 1, cols: 2 },
+    ])
+  })
+
+  it('keeps adjacent (touching) blocks full width', () => {
+    expect(
+      overlapColumns([
+        { startMin: 780, endMin: 810 },
+        { startMin: 810, endMin: 840 },
+      ]),
+    ).toEqual([
+      { col: 0, cols: 1 },
+      { col: 0, cols: 1 },
+    ])
+  })
+
+  it('reuses a freed column within the same cluster', () => {
+    expect(
+      overlapColumns([
+        { startMin: 0, endMin: 30 },
+        { startMin: 10, endMin: 40 },
+        { startMin: 35, endMin: 60 },
+      ]),
+    ).toEqual([
+      { col: 0, cols: 2 },
+      { col: 1, cols: 2 },
+      { col: 0, cols: 2 },
+    ])
   })
 })

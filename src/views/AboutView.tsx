@@ -7,7 +7,7 @@ import { COLORS } from '../lib/theme'
 import { GerdView } from './GerdView'
 
 const PHOTO_URL = `${import.meta.env.BASE_URL}us.jpeg`
-const APP_VERSION = 'v1.1'
+const APP_VERSION = 'v1.2'
 
 type AboutRow = { emoji: string; label: string; onClick: () => void }
 
@@ -80,7 +80,7 @@ export function AboutView() {
       emoji: '🎁',
       label: t('about.freeGift'),
       onClick: () =>
-        window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank', 'noopener'),
+        window.open('https://www.youtube.com/watch?v=xvFZjo5PgG0', '_blank', 'noopener'),
     },
     {
       emoji: '🏍️',

@@ -580,6 +580,12 @@ export function applyTheme(id: ThemeId): void {
   // painted from the body background's solid colour (image/gradient layers are dropped
   // there). Use each theme's flat navBg so the strip matches the nav's base tone.
   root.style.setProperty('--nav-strip-bg', theme.palette.navBg)
+  // Android/Chrome colour the status bar (and the mobile address bar) from the
+  // theme-color meta. Match it to the app background so it blends with the top of
+  // the screen per theme, the way iOS's translucent bar does.
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', theme.palette.appBg)
 }
 
 // Persisted theme choice (localStorage; falls back to default if unavailable).
