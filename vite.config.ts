@@ -18,7 +18,7 @@ export default defineConfig(({ command }) => ({
         name: 'Etas Eats',
         short_name: 'Etas Eats',
         description: 'A personal food diary',
-        theme_color: '#e5556e',
+        theme_color: '#ffffff',
         background_color: '#fff8f3',
         display: 'standalone',
         orientation: 'portrait',

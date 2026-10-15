@@ -40,7 +40,8 @@ Single-page app, offline-first, no backend in phase 1. Source lives in `src/`:
   - `date-i18n.ts` - localised month/weekday/date/gap/duration formatting.
   - `period.ts` - the `all | 3d | week | month` range filter used by Tracker/Analysis.
   - `theme.ts` - the whole theming system: `Palette`, the 4 `THEMES`, `applyTheme` (writes
-    CSS custom properties onto `:root`), entry-type emoji/labels/colours, decor flags.
+    CSS custom properties onto `:root`, and the Android status-bar `theme-color` meta),
+    entry-type emoji/labels/colours, decor flags.
   - `theme-context.tsx` - React context mirroring the active theme (for DOM that differs per theme).
   - `i18n.ts` + `i18n-context.tsx` - the string dictionaries (en/it/nl) and `useI18n()` / `t()`.
   - `entryTypes.ts` - symptom labels/options and the playful food/activity placeholders.
