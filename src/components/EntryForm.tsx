@@ -448,9 +448,9 @@ export function EntryForm({
             </div>
           )}
 
-          {/* Date + start */}
+          {/* Date + start (date keeps ~2/3; iOS date inputs won't shrink smaller). */}
           <div className="flex gap-2">
-            <label className="min-w-0 flex-1">
+            <label className="min-w-0 flex-[2]">
               <span className={labelClass}>{t('form.date')}</span>
               <input
                 type="date"
