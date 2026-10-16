@@ -114,6 +114,28 @@ Four full themes, selectable in Settings, all driven by CSS custom properties wr
 Each theme supplies a full `Palette` plus optional `decor` flags (patterned backgrounds,
 special FABs, print trims, waves, etc.) that toggle extra DOM in the components.
 
+## Known issue: iOS 27 keyboard/viewport (works on 26.5)
+Greta's device runs **iOS 26.5, where the app works correctly**. On the **iOS 27** simulator,
+focusing any text input breaks layout: the whole fixed app shifts down and the text caret
+renders a row or two below its field. This is **not a code bug** - the shell (`index.html`
+viewport meta, `index.css`, `App.tsx`) is byte-identical to a known-good earlier commit, and
+the same build is correct on 26.5.
+
+**Likely cause:** iOS 27's WebKit changed how the on-screen keyboard reshapes the viewport for
+a `position: fixed`, full-screen app. When the keyboard opens, 27 scrolls/offsets the fixed
+layout (and miscomputes the caret position) where 26.5 did not - Apple has been actively
+changing visual-viewport/keyboard behaviour, so this may be a 27-beta regression. (Note: an
+earlier attempt to fix it with `position: fixed` on `body` made the caret offset *worse* on
+every input - don't reach for that.)
+
+**If it ever needs fixing** (e.g. she updates to 27), the levers in order of preference:
+1. The viewport-meta `interactive-widget` property (try `interactive-widget=resizes-content`) -
+   tells the browser how the keyboard should reshape the viewport.
+2. A `visualViewport` resize listener that sizes the app shell to the visible area while the
+   keyboard is open, so iOS never needs to scroll the fixed layout.
+3. Swap `height: 100%` on the shell for small-viewport units (`100dvh` / `100svh`).
+Any such change **must be tested on both 26.5 and 27** - never regress the device she uses.
+
 ## Launch splash
 Installed PWAs show a native launch screen (logo on white `#ffffff`, matching the default theme):
 Android draws the manifest icon on `background_color`; iOS uses the `apple-touch-startup-image`
