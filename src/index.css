@@ -427,16 +427,9 @@ body,
 html,
 body {
   overscroll-behavior: none;
-  overflow: hidden;
 }
 
-/* Lock the document to the viewport. The app is a fixed, full-screen shell that
-   owns its own internal scroll, so the page must never scroll - otherwise iOS
-   scrolls the whole fixed layout to reveal a focused input under the keyboard and
-   leaves it offset ("pushed down"). */
 body {
-  position: fixed;
-  inset: 0;
   margin: 0;
   /* The page canvas shows in the home-indicator strip on iOS standalone, so paint it
      the active nav background (print/velour/solid per theme) so the strip matches the
