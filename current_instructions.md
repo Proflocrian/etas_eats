@@ -16,14 +16,18 @@ v1.0
 ...
 ```
 
-For now, 1.1 can just be the foundations of the app. 
+Where;
+
+1.0
+- Foundations of the app
 
 1.1:
-- All translations
+- All Translations added
 - Easter Eggs
-- About page
+- About Page
 - Versioning
-- // Add a few more features that you think were last to exist
+- 11:11 Theme added
+- // Add a few more features that you think were implemented (that exist) but arent part of the core app point
 
-1.1
+1.2
 - Stuff we did today
