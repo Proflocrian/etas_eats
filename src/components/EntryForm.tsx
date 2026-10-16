@@ -74,7 +74,7 @@ function Pill({
 }
 
 const inputClass =
-  'w-full rounded-lg border border-input-border bg-input-bg px-3 py-2 text-base text-text-primary outline-none focus:border-[var(--field-accent)]'
+  'w-full min-w-0 rounded-lg border border-input-border bg-input-bg px-3 py-2 text-base text-text-primary outline-none focus:border-[var(--field-accent)]'
 const labelClass = 'mb-1 block text-sm font-bold text-text-primary'
 const optionalClass = 'font-normal text-text-muted'
 
