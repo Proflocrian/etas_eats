@@ -4,6 +4,7 @@ import { Modal } from '../components/Modal'
 import { useI18n } from '../lib/i18n-context'
 import { useBackToClose } from '../lib/use-back-to-close'
 import { COLORS } from '../lib/theme'
+import { ChangelogView } from './ChangelogView'
 import { GerdView } from './GerdView'
 
 const PHOTO_URL = `${import.meta.env.BASE_URL}us.jpeg`
@@ -52,12 +53,15 @@ export function AboutView() {
     null,
   )
   const [showGerd, setShowGerd] = useState(false)
+  const [showChangelog, setShowChangelog] = useState(false)
   const [photoOk, setPhotoOk] = useState(true)
   const { t } = useI18n()
 
   useBackToClose(showGerd, () => setShowGerd(false))
+  useBackToClose(showChangelog, () => setShowChangelog(false))
 
   if (showGerd) return <GerdView onBack={() => setShowGerd(false)} />
+  if (showChangelog) return <ChangelogView onBack={() => setShowChangelog(false)} />
 
   const helpRows: AboutRow[] = [
     {
@@ -73,6 +77,7 @@ export function AboutView() {
         setAlert({ title: t('about.aboutApp'), body: t('about.aboutApp.body') }),
     },
     { emoji: '📖', label: t('about.gerdWiki'), onClick: () => setShowGerd(true) },
+    { emoji: '📝', label: t('about.changelog'), onClick: () => setShowChangelog(true) },
   ]
 
   const rewardRows: AboutRow[] = [
