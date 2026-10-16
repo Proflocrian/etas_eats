@@ -1,11 +1,29 @@
-Okay cool seems to be fixed. However, on the iPhone emulator - there seems to be a big problem. 
+I'd like to add a changelog. 
 
-The app starts fine and looks all normal (see here: `starts_normal.jpeg`). but after "entering" (ie hitting) an entry field, the whole page of the EntryForm seems to get messed up, and the whole app boundaries seem to get pushed down (if that makes sense), see here: `input_gets_weird.jpeg`
+Under About, under help, there should be a new button (with appropriate emoji) called `Changelog` (the button itself should be translatable, but not the info inside when clicked)
 
-I have no idea what this can be?
+When clicked it should act like the GERD-Wiki button, takes to a page with something like; 
 
-I also noticed the date picker on the iphone, it's width is bigger than it should be (and it overflows into the start time - see again the `input_gets_weird.jpeg` photo) - maybe it's got something to do with that? 
+```
+v1.2
+....
 
-The good (or bad) news is that this bug is from one of the features we worked on today (ie; multi-duration entries, adding a photo, the splash screen)
+v1.1
+...
 
-Lmk if you understand the problem (or if you have questions), otherwise lmk what you think we can do to fix this. 
+
+v1.0
+...
+```
+
+For now, 1.1 can just be the foundations of the app. 
+
+1.1:
+- All translations
+- Easter Eggs
+- About page
+- Versioning
+- // Add a few more features that you think were last to exist
+
+1.1
+- Stuff we did today
