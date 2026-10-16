@@ -73,8 +73,9 @@ function Pill({
   )
 }
 
-const inputClass =
-  'w-full min-w-0 rounded-lg border border-input-border bg-input-bg px-3 py-2 text-base text-text-primary outline-none focus:border-[var(--field-accent)]'
+const inputBase =
+  'min-w-0 rounded-lg border border-input-border bg-input-bg px-3 py-2 text-base text-text-primary outline-none focus:border-[var(--field-accent)]'
+const inputClass = `w-full ${inputBase}`
 const labelClass = 'mb-1 block text-sm font-bold text-text-primary'
 const optionalClass = 'font-normal text-text-muted'
 
@@ -448,14 +449,15 @@ export function EntryForm({
             </div>
           )}
 
-          {/* Date + start (date keeps ~2/3; iOS date inputs won't shrink smaller). */}
-          <div className="flex gap-2">
-            <label className="min-w-0 flex-[2]">
+          {/* Date + start. Let the native date input size to its own content
+              (not a forced flex ratio) so it never overflows into Start. */}
+          <div className="flex items-end gap-2">
+            <label className="flex shrink-0 flex-col">
               <span className={labelClass}>{t('form.date')}</span>
               <input
                 type="date"
                 aria-label={t('form.date')}
-                className={inputClass}
+                className={inputBase}
                 style={inputStyle}
                 value={dateKeyToInput(dateKey)}
                 onChange={(e) => {
@@ -463,7 +465,7 @@ export function EntryForm({
                 }}
               />
             </label>
-            <label className="min-w-0 flex-1">
+            <label className="flex min-w-0 flex-1 flex-col">
               <span className={labelClass}>{t('form.start')}</span>
               <select
                 aria-label={t('form.start')}
