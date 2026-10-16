@@ -5,7 +5,7 @@ import { COLORS } from '../lib/theme'
 // Version history. English only (deliberately not translated), newest first.
 const CHANGELOG: { version: string; items: string[] }[] = [
   {
-    version: 'v1.2',
+    version: 'v1.2 -- 16/10/2026',
     items: [
       'Entries can now have a length (30 min up to 12 hours), and can run past midnight',
       'Calendar blocks are sized to their duration; overlapping entries sit side by side',
@@ -15,7 +15,7 @@ const CHANGELOG: { version: string; items: string[] }[] = [
     ],
   },
   {
-    version: 'v1.1',
+    version: 'v1.1 -- 11/10/2026 (Your Birthday!)',
     items: [
       'Full translations: English, Italian and Dutch',
       'The About Page',
@@ -26,7 +26,7 @@ const CHANGELOG: { version: string; items: string[] }[] = [
     ],
   },
   {
-    version: 'v1.0',
+    version: 'v1.0 -- 07/10/2026',
     items: [
       'The foundations: A calendar to log food, activities and symptoms',
       'Flag possible triggers',
@@ -58,9 +58,11 @@ export function ChangelogView({ onBack }: { onBack: () => void }) {
   const { t } = useI18n()
   return (
     <div
-      className="relative flex h-full flex-col overflow-hidden"
+      className="fixed inset-0 z-40 flex flex-col overflow-hidden"
       style={{
+        background: 'var(--app-bg-layer, var(--color-app-bg))',
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
+        paddingBottom: 'env(safe-area-inset-bottom)',
         paddingLeft: 'max(1rem, env(safe-area-inset-left))',
         paddingRight: 'max(1rem, env(safe-area-inset-right))',
       }}

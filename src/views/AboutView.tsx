@@ -151,7 +151,7 @@ export function AboutView() {
               Eats
             </span>
           </div>
-          <p className="mt-1 text-xs text-text-muted">{APP_VERSION}</p>
+          <p className="mt-1 font-bold text-sm">{APP_VERSION}</p>
         </div>
 
         <SectionTitle>{t('about.help')}</SectionTitle>

@@ -449,20 +449,17 @@ export function EntryForm({
             </div>
           )}
 
-          {/* Date / Start / Duration / End in one 2-col grid so the two rows line
-              up. The left column sizes to the native date input (which won't
-              shrink); the right column takes the rest. Duration + End are two views
-              of the same value - editing either sets it. */}
-          <div
-            className="grid items-end gap-x-2 gap-y-3"
-            style={{ gridTemplateColumns: 'max-content minmax(0, 1fr)' }}
-          >
-            <label className="flex flex-col">
+          {/* Date / Start / Duration / End in one even 2-col grid so the two rows
+              align (the native date input varies in width per platform, so we don't
+              size a column to it). Duration + End are two views of the same value -
+              editing either sets it. */}
+          <div className="grid grid-cols-2 items-end gap-x-2 gap-y-3">
+            <label className="flex min-w-0 flex-col">
               <span className={labelClass}>{t('form.date')}</span>
               <input
                 type="date"
                 aria-label={t('form.date')}
-                className={inputBase}
+                className={inputClass}
                 style={inputStyle}
                 value={dateKeyToInput(dateKey)}
                 onChange={(e) => {

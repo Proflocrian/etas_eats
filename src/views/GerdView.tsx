@@ -30,9 +30,11 @@ export function GerdView({ onBack }: { onBack: () => void }) {
   const { t, tList } = useI18n()
   return (
     <div
-      className="relative flex h-full flex-col overflow-hidden"
+      className="fixed inset-0 z-40 flex flex-col overflow-hidden"
       style={{
+        background: 'var(--app-bg-layer, var(--color-app-bg))',
         paddingTop: 'max(1rem, env(safe-area-inset-top))',
+        paddingBottom: 'env(safe-area-inset-bottom)',
         paddingLeft: 'max(1rem, env(safe-area-inset-left))',
         paddingRight: 'max(1rem, env(safe-area-inset-right))',
       }}
